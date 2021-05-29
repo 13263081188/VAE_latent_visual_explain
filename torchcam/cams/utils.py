@@ -11,7 +11,6 @@ from functools import partial
 
 __all__ = ['locate_candidate_layer', 'locate_linear_layer']
 
-
 def locate_candidate_layer(mod: nn.Module, input_shape: Tuple[int, ...] = (3, 224, 224)) -> Optional[str]:
     """Attempts to find a candidate layer to use for CAM extraction
 
@@ -26,7 +25,6 @@ def locate_candidate_layer(mod: nn.Module, input_shape: Tuple[int, ...] = (3, 22
     # Set module in eval mode
     module_mode = mod.training
     mod.eval()
-
     output_shapes: List[Tuple[Optional[str], Tuple[int, ...]]] = []
 
     def _record_output_shape(module: nn.Module, input: Tensor, output: Tensor, name: Optional[str] = None) -> None:

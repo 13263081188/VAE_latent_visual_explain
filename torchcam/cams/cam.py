@@ -54,8 +54,8 @@ class CAM(_CAM):
         fc_layer: Optional[str] = None,
         input_shape: Tuple[int, ...] = (3, 224, 224),
     ) -> None:
-
         super().__init__(model, target_layer, input_shape)
+
 
         # If the layer is not specified, try automatic resolution
         if fc_layer is None:
@@ -65,6 +65,7 @@ class CAM(_CAM):
                 logging.warning(f"no value was provided for `fc_layer`, thus set to '{fc_layer}'.")
             else:
                 raise ValueError("unable to resolve `fc_layer` automatically, please specify its value.")
+
         # Softmax weight
         self._fc_weights = self.submodule_dict[fc_layer].weight.data
         # squeeze to accomodate replacement by Conv1x1
@@ -73,7 +74,6 @@ class CAM(_CAM):
 
     def _get_weights(self, class_idx: int, scores: Optional[Tensor] = None) -> Tensor:
         """Computes the weight coefficients of the hooked activation maps"""
-
         # Take the FC weights of the target class
         return self._fc_weights[class_idx, :]
 
@@ -110,7 +110,6 @@ class ScoreCAM(_CAM):
         >>> cam = ScoreCAM(model, 'layer4')
         >>> with torch.no_grad(): out = model(input_tensor)
         >>> cam(class_idx=100)
-
     Args:
         model: input model
         target_layer: name of the target layer
@@ -172,12 +171,10 @@ class ScoreCAM(_CAM):
             with torch.no_grad():
                 # Get the softmax probabilities of the target class
                 weights[selection_slice] = F.softmax(self.model(masked_input[selection_slice]), dim=1)[:, class_idx]
-
         # Reenable hook updates
         self._hooks_enabled = True
         # Put back the model in the correct mode
         self.model.training = origin_mode
-
         return weights
 
     def __repr__(self) -> str:
@@ -238,9 +235,7 @@ class SSCAM(ScoreCAM):
         std: float = 2.0,
         input_shape: Tuple[int, ...] = (3, 224, 224),
     ) -> None:
-
         super().__init__(model, target_layer, batch_size, input_shape)
-
         self.num_samples = num_samples
         self.std = std
         self._distrib = torch.distributions.normal.Normal(0, self.std)
@@ -289,7 +284,6 @@ class SSCAM(ScoreCAM):
         self._hooks_enabled = True
         # Put back the model in the correct mode
         self.model.training = origin_mode
-
         return weights
 
     def __repr__(self) -> str:
@@ -396,5 +390,4 @@ class ISCAM(ScoreCAM):
         self._hooks_enabled = True
         # Put back the model in the correct mode
         self.model.training = origin_mode
-
         return weights

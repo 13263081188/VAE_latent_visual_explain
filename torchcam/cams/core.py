@@ -9,7 +9,6 @@ from torch import Tensor
 from torch import nn
 import torch.nn.functional as F
 from typing import Optional, List, Tuple
-
 from .utils import locate_candidate_layer
 
 __all__ = ['_CAM']
@@ -17,7 +16,6 @@ __all__ = ['_CAM']
 
 class _CAM:
     """Implements a class activation map extractor
-
     Args:
         model: input model
         target_layer: name of the target layer
@@ -30,10 +28,8 @@ class _CAM:
         target_layer: Optional[str] = None,
         input_shape: Tuple[int, ...] = (3, 224, 224),
     ) -> None:
-
         # Obtain a mapping from module name to module instance for each layer in the model
         self.submodule_dict = dict(model.named_modules())
-
         # If the layer is not specified, try automatic resolution
         if target_layer is None:
             target_layer = locate_candidate_layer(model, input_shape)
@@ -50,12 +46,17 @@ class _CAM:
         # Init hooks
         self.hook_a: Optional[Tensor] = None
         self.hook_handles: List[torch.utils.hooks.RemovableHandle] = []
+
+
         # Forward hook
         self.hook_handles.append(self.submodule_dict[target_layer].register_forward_hook(self._hook_a))
+
         # Enable hooks
         self._hooks_enabled = True
+
         # Should ReLU be used before normalization
         self._relu = False
+
         # Model output is used by the extractor
         self._score_used = False
 
@@ -70,13 +71,13 @@ class _CAM:
             handle.remove()
         self.hook_handles.clear()
 
+
     @staticmethod
     def _normalize(cams: Tensor, spatial_dims: Optional[int] = None) -> Tensor:
         """CAM normalization"""
         spatial_dims = cams.ndim if spatial_dims is None else spatial_dims
         cams.sub_(cams.flatten(start_dim=-spatial_dims).min(-1).values[(...,) + (None,) * spatial_dims])
         cams.div_(cams.flatten(start_dim=-spatial_dims).max(-1).values[(...,) + (None,) * spatial_dims])
-
         return cams
 
     def _get_weights(self, class_idx: int, scores: Optional[Tensor] = None) -> Tensor:
@@ -111,12 +112,10 @@ class _CAM:
 
     def compute_cams(self, class_idx: int, scores: Optional[Tensor] = None, normalized: bool = True) -> Tensor:
         """Compute the CAM for a specific output class
-
         Args:
             class_idx (int): output class index of the target class whose CAM will be computed
             scores (torch.Tensor[1, K], optional): forward output scores of the hooked model
             normalized (bool, optional): whether the CAM should be normalized
-
         Returns:
             torch.Tensor[M, N]: class activation map of hooked conv layer
         """
@@ -127,7 +126,6 @@ class _CAM:
 
         # Perform the weighted combination to get the CAM
         batch_cams = torch.nansum(weights * self.hook_a.squeeze(0), dim=0)  # type: ignore[union-attr]
-
         if self._relu:
             batch_cams = F.relu(batch_cams, inplace=True)
 

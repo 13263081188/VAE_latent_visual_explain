@@ -4,7 +4,9 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import torch
+
 from torch import Tensor
+
 from typing import Optional, Tuple
 
 from .core import _CAM
@@ -14,13 +16,11 @@ __all__ = ['GradCAM', 'GradCAMpp', 'SmoothGradCAMpp', 'XGradCAM']
 
 class _GradCAM(_CAM):
     """Implements a gradient-based class activation map extractor
-
     Args:
         model: input model
         target_layer: name of the target layer
         input_shape: shape of the expected input tensor excluding the batch dimension
     """
-
     def __init__(
         self,
         model: torch.nn.Module,
@@ -37,27 +37,25 @@ class _GradCAM(_CAM):
         self._score_used = True
         # cf. https://github.com/pytorch/pytorch/pull/46163
         bw_hook = 'register_full_backward_hook' if torch.__version__ >= '1.8.0' else 'register_backward_hook'
+
         # Backward hook
+        #don‘t understand
         self.hook_handles.append(getattr(self.submodule_dict[self.target_layer], bw_hook)(self._hook_g))
 
     def _hook_g(self, module: torch.nn.Module, input: Tensor, output: Tensor) -> None:
         """Gradient hook"""
         if self._hooks_enabled:
             self.hook_g = output[0].data
-
     def _backprop(self, scores: Tensor, class_idx: int) -> None:
         """Backpropagate the loss for a specific output class"""
-
         if self.hook_a is None:
             raise TypeError("Inputs need to be forwarded in the model for the conv features to be hooked")
-
         # Backpropagate to get the gradients on the hooked layer
         loss = scores[:, class_idx].sum()
         self.model.zero_grad()
         loss.backward(retain_graph=True)
 
     def _get_weights(self, class_idx, scores):
-
         raise NotImplementedError
 
 
@@ -87,7 +85,6 @@ class GradCAM(_GradCAM):
         >>> cam = GradCAM(model, 'layer4')
         >>> scores = model(input_tensor)
         >>> cam(class_idx=100, scores=scores)
-
     Args:
         model: input model
         target_layer: name of the target layer
@@ -96,7 +93,6 @@ class GradCAM(_GradCAM):
 
     def _get_weights(self, class_idx: int, scores: Tensor) -> Tensor:  # type: ignore[override]
         """Computes the weight coefficients of the hooked activation maps"""
-
         self.hook_g: Tensor
         # Backpropagate
         self._backprop(scores, class_idx)
@@ -118,21 +114,19 @@ class GradCAMpp(_GradCAM):
     .. math::
         w_k^{(c)} = \\sum\\limits_{i=1}^H \\sum\\limits_{j=1}^W \\alpha_k^{(c)}(i, j) \\cdot
         ReLU\\Big(\\frac{\\partial Y^{(c)}}{\\partial A_k(i, j)}\\Big)
-
     where :math:`A_k(x, y)` is the activation of node :math:`k` in the target layer of the model at
     position :math:`(x, y)`,
     :math:`Y^{(c)}` is the model output score for class :math:`c` before softmax,
     and :math:`\\alpha_k^{(c)}(i, j)` being defined as:
-
+    .. math::
     .. math::
         \\alpha_k^{(c)}(i, j) = \\frac{1}{\\sum\\limits_{i, j} \\frac{\\partial Y^{(c)}}{\\partial A_k(i, j)}}
         = \\frac{\\frac{\\partial^2 Y^{(c)}}{(\\partial A_k(i,j))^2}}{2 \\cdot
         \\frac{\\partial^2 Y^{(c)}}{(\\partial A_k(i,j))^2} + \\sum\\limits_{a,b} A_k (a,b) \\cdot
         \\frac{\\partial^3 Y^{(c)}}{(\\partial A_k(i,j))^3}}
-
     if :math:`\\frac{\\partial Y^{(c)}}{\\partial A_k(i, j)} = 1` else :math:`0`.
-
     Example::
+
         >>> from torchvision.models import resnet18
         >>> from torchcam.cams import GradCAMpp
         >>> model = resnet18(pretrained=True).eval()
@@ -161,7 +155,6 @@ class GradCAMpp(_GradCAM):
         nan_mask = grad_2 > 0
         alpha = grad_2
         alpha[nan_mask].div_(denom[nan_mask])
-
         # Apply pixel coefficient in each weight
         return alpha.squeeze_(0).mul_(torch.relu(self.hook_g.squeeze(0))).flatten(1).sum(-1)
 
@@ -325,10 +318,9 @@ class XGradCAM(_GradCAM):
 
     def _get_weights(self, class_idx: int, scores: Tensor) -> Tensor:  # type: ignore[override]
         """Computes the weight coefficients of the hooked activation maps"""
-
+        # self.hook_g:Tensor
         self.hook_a: Tensor
         self.hook_g: Tensor
         # Backpropagate
         self._backprop(scores, class_idx)
-
         return (self.hook_g * self.hook_a).squeeze(0).flatten(1).sum(-1) / self.hook_a.squeeze(0).flatten(1).sum(-1)
