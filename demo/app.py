@@ -22,44 +22,59 @@ LABEL_MAP = requests.get(
     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
 ).json()
 
-def show(x):
-    from torchvision.models import resnet18
-    from PIL import Image
-    import os
-    from torchvision import transforms
-    from torchvision.transforms.functional import resize, to_tensor, normalize, to_pil_image
-    print(os.chdir('C:\\Users\\Administrator\\torch-cam\\torchcam'))
-    import cams
-    GradCAM = cams.__dict__['GradCAM']
-    import torch
-    model = resnet18(pretrained=True).eval()
-
-    cam = GradCAM(model, 'layer4')
-    print(cam)
-    # x = torch.randn(1,3,224,224)
-
-    img = Image.open('C:\\Users\\Administrator\\Pictures\\1.jpg')
-    img.show()
-    # print(img)
-    in_ = normalize(to_tensor(resize(img, (224, 224))), [0.485, 0.456, 0.406],
-                    [0.229, 0.224, 0.225])
-    print(in_.size())
-    scores = model(in_.unsqueeze(0))
-    unloader = transforms.ToPILImage()
-
-    # Tensor->image
-    def tensor_to_PIL(tensor):
-        image = tensor.cpu().clone()
-        image = image.squeeze(0)
-        image = unloader(image)
-        return image
-
-    # cam(class_idx=100, scores=scores)
-    tensor_to_PIL(x.resize((100, 100)).show()
-
 
 # @st.cache
 def main():
+    def show(x):
+        from torchvision.models import resnet18
+        from PIL import Image
+        import os
+        from torchvision import transforms
+        from torchvision.transforms.functional import resize, to_tensor, normalize, to_pil_image
+        print(os.chdir('C:\\Users\\Administrator\\torch-cam\\torchcam'))
+        import cams
+        GradCAM = cams.__dict__['GradCAM']
+        import torch
+        model = resnet18(pretrained=True).eval()
+
+        cam = GradCAM(model, 'layer4')
+        print(cam)
+        # x = torch.randn(1,3,224,224)
+
+        img = Image.open('C:\\Users\\Administrator\\Pictures\\1.jpg')
+        img.show()
+        # print(img)
+        in_ = normalize(to_tensor(resize(img, (224, 224))), [0.485, 0.456, 0.406],
+                        [0.229, 0.224, 0.225])
+        print(in_.size())
+        scores = model(in_.unsqueeze(0))
+        unloader = transforms.ToPILImage()
+
+        # Tensor->image
+        def tensor_to_PIL(tensor):
+            image = tensor.cpu().clone()
+            image = image.squeeze(0)
+            image = unloader(image)
+            return image
+
+        # cam(class_idx=100, scores=scores)
+        tensor_to_PIL(x.resize((100, 100)).show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # Wide mode
     st.set_page_config(layout="wide")
     # Designing the interface
