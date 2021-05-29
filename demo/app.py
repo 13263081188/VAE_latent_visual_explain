@@ -15,7 +15,6 @@ from torchvision.transforms.functional import resize, to_tensor, normalize, to_p
 from torchcam import cams
 from torchcam.utils import overlay_mask
 
-
 CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
 LABEL_MAP = requests.get(
@@ -25,65 +24,16 @@ LABEL_MAP = requests.get(
 
 # @st.cache
 def main():
-    def show(x):
-        from torchvision.models import resnet18
-        from PIL import Image
-        import os
-        from torchvision import transforms
-        from torchvision.transforms.functional import resize, to_tensor, normalize, to_pil_image
-        print(os.chdir('C:\\Users\\Administrator\\torch-cam\\torchcam'))
-        import cams
-        GradCAM = cams.__dict__['GradCAM']
-        import torch
-        model = resnet18(pretrained=True).eval()
-
-        cam = GradCAM(model, 'layer4')
-        print(cam)
-        # x = torch.randn(1,3,224,224)
-
-        img = Image.open('C:\\Users\\Administrator\\Pictures\\1.jpg')
-        img.show()
-        # print(img)
-        in_ = normalize(to_tensor(resize(img, (224, 224))), [0.485, 0.456, 0.406],
-                        [0.229, 0.224, 0.225])
-        print(in_.size())
-        scores = model(in_.unsqueeze(0))
-        unloader = transforms.ToPILImage()
-
-        # Tensor->image
-        def tensor_to_PIL(tensor):
-            image = tensor.cpu().clone()
-            image = image.squeeze(0)
-            image = unloader(image)
-            return image
-
-        # cam(class_idx=100, scores=scores)
-        tensor_to_PIL(x.resize((100, 100)).show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # Wide mode
     st.set_page_config(layout="wide")
     # Designing the interface
-    st.title("variation auto-encoder")
+    st.title("aaation auto-encoder")
     # For newline
     st.write('\n')
     test = st.beta_columns(3)
     zz = test[0].form("input image")
     # zz.form_submit_button("dont'touch")
+
     # cam_ for i in range(1000)
     cols = [st.form(str(i)) for i in range(len(CAM_METHODS))]
     # cols[0].write("Input image")
@@ -194,7 +144,6 @@ def main():
         if cols[i].form_submit_button("COMPUTE " + CAM_METHODS[i]):
             cam_method = CAM_METHODS[i]
             # st.write(cam_method)
-
             if cam_method is not None:
                 cam_extractor = cams.__dict__[cam_method](
                     model,
@@ -208,7 +157,6 @@ def main():
                 st.balloons()
                 with st.spinner('Analyzing...'):
                     # Preprocess image
-                    #img 为PIL（RGB)
                     img_tensor = normalize(to_tensor(resize(img, (224, 224))), [0.485, 0.456, 0.406],
                                            [0.229, 0.224, 0.225])
                     # Forward the image to the model
@@ -221,7 +169,6 @@ def main():
 
                     # Retrieve the CAM
                     activation_map = cam_extractor(class_idx, out)
-                    show(activation_map)
                     print("avtivation_map", type(activation_map))
                     print(activation_map.size())
                     x, y, z = cols[i].beta_columns(3)
@@ -267,7 +214,7 @@ def main():
                     model,
                     target_layer=target_layer if len(target_layer) > 0 else None
                 )
-            list1[i].header(CAM_METHODS[i])
+            list1[i].header(CAM_METHODS[i], use_column_width=True)
             if uploaded_file is None:
                 st.sidebar.error("Please upload an image first")
             else:
@@ -305,6 +252,7 @@ def main():
                     # y.image(im, use_column_width=True)
                     # Overlayed CAM
                     fig, ax = plt.subplots()
+
                     # about mode https://blog.csdn.net/u013066730/article/details/102832597
                     # F represent that grey and pixel value-float 32
                     result = overlay_mask(img, to_pil_image(activation_map, mode='F'), alpha=0.5)
@@ -317,7 +265,5 @@ def main():
                     list1[i].pyplot(fig)
                     # z.image(img,use_column_width=True)
                     # z.image(im, use_column_width=True)
-
-
 if __name__ == '__main__':
     main()
