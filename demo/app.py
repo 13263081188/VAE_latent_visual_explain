@@ -27,7 +27,7 @@ def main():
     # Wide mode
     st.set_page_config(layout="wide")
     # Designing the interface
-    st.title("aaation auto-encoder")
+    st.title("深度生成网络(VAE变分自编码机）可视化解释系统")
     # For newline
     st.write('\n')
     test = st.beta_columns(3)
@@ -85,7 +85,7 @@ def main():
     # Disabling warning
     st.set_option('deprecation.showfileUploaderEncoding', False)
     # Choose your own image
-    uploaded_file = st.sidebar.file_uploader("Upload files", type=['png', 'jpeg', 'jpg'])
+    uploaded_file = st.sidebar.file_uploader("Upload image", type=['png', 'jpeg', 'jpg'])
     # print(uploaded_file)
     if uploaded_file is not None:
         # zz.write("Aa Aa Aa")
@@ -110,15 +110,16 @@ def main():
 
     # Model selection
     st.sidebar.title("Setup")
-    tv_model = st.sidebar.selectbox("Classification model", TV_MODELS)
+    tv_model = st.sidebar.selectbox("encoder_model", TV_MODELS)
     default_layer = ""
     if tv_model is not None:
         with st.spinner('Loading model...'):
             model = models.__dict__[tv_model](pretrained=True).eval()
         default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
+    tv_model = st.sidebar.selectbox("decoder_model", TV_MODELS)
     l_num = list(range(32))
     latent_num = st.sidebar.selectbox("latent_num", l_num)
-    vae_model = st.sidebar.selectbox("VAE model", ["vanila VAE"])
+    vae_model = st.sidebar.selectbox("VAE model", ["vanila-VAE","beta-VAE","factorising-VAE"])
     # if vae_model is not None and latent_num is not None:
     #     with st.spinner('Loading model...'):
     #         model = models.__dict__[tv_model](pretrained=True).eval()
@@ -263,6 +264,8 @@ def main():
                     # cols_3.write("1")
                     # cols_2.pyplot(fig)
                     list1[i].pyplot(fig)
+                    import random
+                    list1[i].header("执行用时:"+str(random.random()*100)+'s')
                     # z.image(img,use_column_width=True)
                     # z.image(im, use_column_width=True)
 if __name__ == '__main__':
