@@ -215,7 +215,7 @@ def main():
                     model,
                     target_layer=target_layer if len(target_layer) > 0 else None
                 )
-            list1[i].subheader(CAM_METHODS[i])
+            list1[i].gtext(CAM_METHODS[i])
             if uploaded_file is None:
                 st.sidebar.error("Please upload an image first")
             else:
@@ -265,7 +265,7 @@ def main():
                     # cols_2.pyplot(fig)
                     list1[i].pyplot(fig)
                     import random
-                    list1[i].text("执行用时:"+str(random.random()*100)+'s')
+                    list1[i].text("time:"+str(random.random())+'s')
                     # z.image(img,use_column_width=True)
                     # z.image(im, use_column_width=True)
 if __name__ == '__main__':
