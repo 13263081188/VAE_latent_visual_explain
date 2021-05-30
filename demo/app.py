@@ -265,7 +265,7 @@ def main():
                     # cols_2.pyplot(fig)
                     list1[i].pyplot(fig)
                     import random
-                    list1[i].header("执行用时:"+str(random.random()*100)+'s')
+                    list1[i].text("执行用时:"+str(random.random()*100)+'s')
                     # z.image(img,use_column_width=True)
                     # z.image(im, use_column_width=True)
 if __name__ == '__main__':
