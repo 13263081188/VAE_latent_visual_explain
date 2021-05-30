@@ -215,7 +215,7 @@ def main():
                     model,
                     target_layer=target_layer if len(target_layer) > 0 else None
                 )
-            list1[i].header(CAM_METHODS[i], use_column_width=True)
+            list1[i].header(CAM_METHODS[i])
             if uploaded_file is None:
                 st.sidebar.error("Please upload an image first")
             else:
