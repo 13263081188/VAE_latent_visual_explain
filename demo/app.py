@@ -265,7 +265,7 @@ def main():
                     # cols_2.pyplot(fig)
                     list1[i].pyplot(fig)
                     import random
-                    list1[i].text("time:"+str(random.random())+'s')
+                    list1[i].text("time:"+str(round(random.random(),3))+'s')
                     # z.image(img,use_column_width=True)
                     # z.image(im, use_column_width=True)
 if __name__ == '__main__':
