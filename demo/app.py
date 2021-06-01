@@ -142,7 +142,7 @@ def main():
     for i in range(len(CAM_METHODS)):
         # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
         # for i in range(1,4):
-        if cols[i].form_submit_button("COMPUTE " + CAM_METHODS[i]):
+        if cols[i].form_submit_button("COMPUTE V" + CAM_METHODS[i]):
             cam_method = CAM_METHODS[i]
             # st.write(cam_method)
             if cam_method is not None:
@@ -215,7 +215,7 @@ def main():
                     model,
                     target_layer=target_layer if len(target_layer) > 0 else None
                 )
-            list1[i].text("V"+CAM_METHODS[i])
+            list1[i].text("V"+CAM_METHODS[i][:14])
             if uploaded_file is None:
                 st.sidebar.error("Please upload an image first")
             else:
