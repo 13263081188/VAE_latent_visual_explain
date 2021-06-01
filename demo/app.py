@@ -15,7 +15,7 @@ from torchvision.transforms.functional import resize, to_tensor, normalize, to_p
 from torchcam import cams
 from torchcam.utils import overlay_mask
 
-CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
+CAM_METHODS = ["VCAM", "VGCAM", "VGCAMpp", "VSGCAMpp", "VSCAM", "VSSCAM", "VISCAM", "VXCAM"]
 TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
 LABEL_MAP = requests.get(
     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
