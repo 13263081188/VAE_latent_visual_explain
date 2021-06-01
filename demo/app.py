@@ -15,7 +15,7 @@ from torchvision.transforms.functional import resize, to_tensor, normalize, to_p
 from torchcam import cams
 from torchcam.utils import overlay_mask
 
-CAM_METHODS = ["VCAM", "VGCAM", "VGCAMpp", "VSGCAMpp", "VSCAM", "VSSCAM", "VISCAM", "VXCAM"]
+CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
 LABEL_MAP = requests.get(
     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
@@ -215,7 +215,7 @@ def main():
                     model,
                     target_layer=target_layer if len(target_layer) > 0 else None
                 )
-            list1[i].text(CAM_METHODS[i])
+            list1[i].text("V"+CAM_METHODS[i])
             if uploaded_file is None:
                 st.sidebar.error("Please upload an image first")
             else:
