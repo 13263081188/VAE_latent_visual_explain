@@ -14,7 +14,7 @@ from torchvision import models
 from torchvision.transforms.functional import resize, to_tensor, normalize, to_pil_image
 from torchcam import cams
 from torchcam.utils import overlay_mask
-
+import time
 CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
 LABEL_MAP = requests.get(
@@ -215,6 +215,7 @@ def main():
                     model,
                     target_layer=target_layer if len(target_layer) > 0 else None
                 )
+            start = time.time()
             list1[i].text("V"+CAM_METHODS[i][:14])
             if uploaded_file is None:
                 st.sidebar.error("Please upload an image first")
@@ -265,7 +266,7 @@ def main():
                     # cols_2.pyplot(fig)
                     list1[i].pyplot(fig)
                     import random
-                    list1[i].text("time:"+str(round(random.random(),3))+'s')
+                    list1[i].text("time:"+str(round((time.time()-start)/1000,3))+'s')
                     # z.image(img,use_column_width=True)
                     # z.image(im, use_column_width=True)
 if __name__ == '__main__':
