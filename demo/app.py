@@ -27,7 +27,7 @@ def main():
     # Wide mode
     st.set_page_config(layout="wide")
     # Designing the interface
-    st.title("深度生成网络(变分自编码机）可视化解释系统")
+    st.title("VAE可视化解释系统")
     # For newline
     st.write('\n')
     test = st.beta_columns(3)
