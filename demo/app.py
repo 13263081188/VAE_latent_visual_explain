@@ -25,7 +25,7 @@ LABEL_MAP = requests.get(
 # @st.cache
 def main():
     # Wide mode
-    st.set_page_config(layout="wide")
+    st.set_page_config(layout="wide",title="sss")
     # Designing the interface
     st.title("VAE可视化解释系统")
     # For newline
