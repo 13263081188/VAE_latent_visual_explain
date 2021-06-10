@@ -18,10 +18,10 @@ import time
 import torch
 CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 # TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
-ENCODER = ["resnet18","con"]
-TARGET= {"convae":"encoder.2"}
+ENCODER = ["resnet18","Conv"]
+TARGET= {"ConvVAE":"encoder.2"}
 
-VAE_MODELS = ["vae","beta_vae"]
+VAE_MODELS = ["VAE","beta_vae"]
 beta_= [0.5,1,2]
 # LABEL_MAP = requests.get(
 #     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
