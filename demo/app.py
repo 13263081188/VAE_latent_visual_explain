@@ -15,12 +15,17 @@ from torchvision.transforms.functional import resize, to_tensor, normalize, to_p
 from torchcam import cams
 from torchcam.utils import overlay_mask
 import time
+
 CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
-TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
-VAE_MODELS = ["convae","resnet18_vae","resnet18_b_vae"]
-LABEL_MAP = requests.get(
-    "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
-).json()
+# TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
+ENCODER = ["resnet18","con"]
+TARGET= {"convae":"encoder.2"}
+
+VAE_MODELS = ["vae","beta_vae"]
+beta_= [0.5,1,2]
+# LABEL_MAP = requests.get(
+#     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
+# ).json()
 
 
 # @st.cache
@@ -80,35 +85,43 @@ def main():
 
     # Model selection
     st.sidebar.title("Setup")
-    tv_model = st.sidebar.selectbox("encoder_model", TV_MODELS)
+    encoder = st.sidebar.selectbox("encoder_model", ENCODER)
     default_layer = ""
-    if tv_model is not None:
-        with st.spinner('Loading model...'):
-            model = models.__dict__[tv_model](pretrained=True).eval()
-        default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
+    # if tv_model is not None:
+    #     with st.spinner('Loading model...'):
+    #         model = models.__dict__[tv_model](pretrained=True).eval()
+    #     default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
     l_num = list(range(32))
     latent_pos = st.sidebar.selectbox("latent_pos", l_num)
     vae_model = st.sidebar.selectbox("VAE_structure", VAE_MODELS)
+    mode_name = encoder+vae_model
+    if vae_model == beta_:
+        beta = st.sidebar.selectbox("beta_value", [0.5,1,2])
+        mode_name += str(beta)
+    model = cams.__dict__[mode_name](32).eval()
     # if vae_model is not None and latent_num is not None:
     #     with st.spinner('Loading model...'):
     #         model = models.__dict__[tv_model](pretrained=True).eval()
     default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
     default_layer = ""
     target_layer = st.sidebar.text_input("Target layer", default_layer)
-    cam_method = st.sidebar.selectbox("CAM method", CAM_METHODS)
+
+    # cam_method = st.sidebar.selectbox("CAM method", CAM_METHODS)
     # st.write(cam_method)
-    if cam_method is not None:
-        cam_extractor = cams.__dict__[cam_method](
-            model,
-            target_layer=target_layer if len(target_layer) > 0 else None
-        )
+    # if cam_method is not None:
+    #     cam_extractor = cams.__dict__[cam_method](
+    #         model,
+    #         target_layer=target_layer if len(target_layer) > 0 else None
+    #     )
     # st.write(cam_method)
-    class_choices = [f"{idx + 1} - {class_name}" for idx, class_name in enumerate(LABEL_MAP)]
-    class_selection = st.sidebar.selectbox("Class selection", ["Predicted class (argmax)"] + class_choices)
+
+    # class_choices = [f"{idx + 1} - {class_name}" for idx, class_name in enumerate(LABEL_MAP)]
+    # class_selection = st.sidebar.selectbox("Class selection", ["Predicted class (argmax)"] + class_choices)
+
     for i in range(len(CAM_METHODS)):
         # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
         # for i in range(1,4):
-        if cols[i].form_submit_button("COMPUTE V" + CAM_METHODS[i]):
+        if cols[i].form_submit_button("解释图计算 V" + CAM_METHODS[i]):
             cam_method = CAM_METHODS[i]
             # st.write(cam_method)
             if cam_method is not None:
@@ -129,13 +142,13 @@ def main():
                     # Forward the image to the model
                     out = model(img_tensor.unsqueeze(0))
                     # Select the target class
-                    if class_selection == "Predicted class (argmax)":
-                        class_idx = out.squeeze(0).argmax().item()
-                    else:
-                        class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
+                    # if class_selection == "Predicted class (argmax)":
+                    #     class_idx = out.squeeze(0).argmax().item()
+                    # else:
+                    #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
 
                     # Retrieve the CAM
-                    activation_map = cam_extractor(class_idx, out)
+                    activation_map = cam_extractor(int(latent_pos), out)
                     print("avtivation_map", type(activation_map))
                     print(activation_map.size())
                     x, y, z = cols[i].beta_columns(3)
@@ -194,13 +207,12 @@ def main():
                     # Forward the image to the model
                     out = model(img_tensor.unsqueeze(0))
                     # Select the target class
-                    if class_selection == "Predicted class (argmax)":
-                        class_idx = out.squeeze(0).argmax().item()
-                    else:
-                        class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
-
+                    # if class_selection == "Predicted class (argmax)":
+                    #     class_idx = out.squeeze(0).argmax().item()
+                    # else:
+                    #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
                     # Retrieve the CAM
-                    activation_map = cam_extractor(class_idx, out)
+                    activation_map = cam_extractor(int(latent_pos), out)
                     print("avtivation_map", type(activation_map))
                     print(activation_map.size())
                     # x, y, z = cols[i].beta_columns(3)

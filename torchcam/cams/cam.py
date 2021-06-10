@@ -153,6 +153,7 @@ class ScoreCAM(_CAM):
         # Initialize weights
         weights = torch.zeros(masked_input.shape[0], dtype=masked_input.dtype).to(device=masked_input.device)
 
+
         # Disable hook updates
         self._hooks_enabled = False
         # Switch to eval
