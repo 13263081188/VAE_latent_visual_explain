@@ -17,6 +17,7 @@ from torchcam.utils import overlay_mask
 import time
 CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
+VAE_MODELS = ["convae","resnet18_vae","resnet18_b_vae"]
 LABEL_MAP = requests.get(
     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
 ).json()
@@ -48,37 +49,6 @@ def main():
         # z.write("3")
     all = st.form("ALL")
     all.header("COMPUTE_ALL")
-    st.title('Uber pickups in NYC')
-    DATE_COLUMN = 'date/time'
-    DATA_URL = ('https://s3-us-west-2.amazonaws.com/'
-                'streamlit-demo-data/uber-raw-data-sep14.csv.gz')
-    @st.cache
-    def load_data(nrows):
-        data = pd.read_csv(DATA_URL, nrows=nrows)
-        lowercase = lambda x: str(x).lower()
-        data.rename(lowercase, axis='columns', inplace=True)
-        data[DATE_COLUMN] = pd.to_datetime(data[DATE_COLUMN])
-        return data
-
-    data_load_state = st.text('Loading data...')
-    data = load_data(10000)
-    data_load_state.text("Done! (using st.cache)")
-
-    if st.checkbox('Show raw data'):
-        st.subheader('Raw data')
-        st.write(data)
-
-    st.subheader('Number of pickups by hour')
-    hist_values = np.histogram(data[DATE_COLUMN].dt.hour, bins=24, range=(0, 24))[0]
-    st.bar_chart(hist_values)
-
-    # Some number in the range 0-23
-    hour_to_filter = st.slider('hour', 0, 23, 17)
-    filtered_data = data[data[DATE_COLUMN].dt.hour == hour_to_filter]
-
-    st.subheader('Map of all pickups at %s:00' % hour_to_filter)
-    st.map(filtered_data)
-
     # Sidebar
     # File selection
     st.sidebar.title("Input selection")
@@ -119,7 +89,7 @@ def main():
     tv_model = st.sidebar.selectbox("decoder_model", TV_MODELS)
     l_num = list(range(32))
     latent_num = st.sidebar.selectbox("latent_num", l_num)
-    vae_model = st.sidebar.selectbox("VAE model", ["vanila-VAE","beta-VAE","factorising-VAE"])
+    vae_model = st.sidebar.selectbox("VAE model", VAE_MODELS)
     # if vae_model is not None and latent_num is not None:
     #     with st.spinner('Loading model...'):
     #         model = models.__dict__[tv_model](pretrained=True).eval()
@@ -136,9 +106,6 @@ def main():
     # st.write(cam_method)
     class_choices = [f"{idx + 1} - {class_name}" for idx, class_name in enumerate(LABEL_MAP)]
     class_selection = st.sidebar.selectbox("Class selection", ["Predicted class (argmax)"] + class_choices)
-    # cols = [st.form(str(i)) for i in range(4)]
-    # cols[0].write("Input image")
-    # st.write('\n')
     for i in range(len(CAM_METHODS)):
         # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
         # for i in range(1,4):

@@ -1,8 +1,3 @@
-# Copyright (C) 2020-2021, François-Guillaume Fernandez.
-
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
-
 import math
 import logging
 import torch
@@ -13,6 +8,7 @@ from typing import Optional, Tuple
 
 from .core import _CAM
 from .utils import locate_linear_layer
+import model
 
 __all__ = ['CAM', 'ScoreCAM', 'SSCAM', 'ISCAM']
 
@@ -48,14 +44,14 @@ class CAM(_CAM):
     """
 
     def __init__(
-        self,
-        model: nn.Module,
-        target_layer: Optional[str] = None,
-        fc_layer: Optional[str] = None,
-        input_shape: Tuple[int, ...] = (3, 224, 224),
+            self,
+            model: nn.Module,
+            target_layer: Optional[str] = None,
+            fc_layer: Optional[str] = None,
+            input_shape: Tuple[int, ...] = (3, 224, 224),
     ) -> None:
-        super().__init__(model, target_layer, input_shape)
 
+        super().__init__(model, target_layer, input_shape)
 
         # If the layer is not specified, try automatic resolution
         if fc_layer is None:
@@ -65,15 +61,12 @@ class CAM(_CAM):
                 logging.warning(f"no value was provided for `fc_layer`, thus set to '{fc_layer}'.")
             else:
                 raise ValueError("unable to resolve `fc_layer` automatically, please specify its value.")
-
         # Softmax weight
         self._fc_weights = self.submodule_dict[fc_layer].weight.data
-        # squeeze to accomodate replacement by Conv1x1
-        if self._fc_weights.ndim > 2:
-            self._fc_weights = self._fc_weights.view(*self._fc_weights.shape[:2])
 
     def _get_weights(self, class_idx: int, scores: Optional[Tensor] = None) -> Tensor:
         """Computes the weight coefficients of the hooked activation maps"""
+
         # Take the FC weights of the target class
         return self._fc_weights[class_idx, :]
 
@@ -110,6 +103,7 @@ class ScoreCAM(_CAM):
         >>> cam = ScoreCAM(model, 'layer4')
         >>> with torch.no_grad(): out = model(input_tensor)
         >>> cam(class_idx=100)
+
     Args:
         model: input model
         target_layer: name of the target layer
@@ -118,11 +112,11 @@ class ScoreCAM(_CAM):
     """
 
     def __init__(
-        self,
-        model: nn.Module,
-        target_layer: Optional[str] = None,
-        batch_size: int = 32,
-        input_shape: Tuple[int, ...] = (3, 224, 224),
+            self,
+            model: nn.Module,
+            target_layer: Optional[str] = None,
+            batch_size: int = 32,
+            input_shape: Tuple[int, ...] = (3, 224, 224),
     ) -> None:
 
         super().__init__(model, target_layer, input_shape)
@@ -141,12 +135,12 @@ class ScoreCAM(_CAM):
 
     def _get_weights(self, class_idx: int, scores: Optional[Tensor] = None) -> Tensor:
         """Computes the weight coefficients of the hooked activation maps"""
-
+        print(type(scores), "----", scores.shape)
         # Normalize the activation
         self.hook_a: Tensor
         upsampled_a = self._normalize(self.hook_a, self.hook_a.ndim - 2)
 
-        # Upsample it to input_size
+        #  Upsample it to input_size
         # 1 * O * M * N
         spatial_dims = self._input.ndim - 2
         interpolation_mode = 'bilinear' if spatial_dims == 2 else 'trilinear' if spatial_dims == 3 else 'nearest'
@@ -164,17 +158,21 @@ class ScoreCAM(_CAM):
         # Switch to eval
         origin_mode = self.model.training
         self.model.eval()
-        # Process by chunk (GPU RAM limitation)
+        #  Process by chunk (GPU RAM limitation)
         for idx in range(math.ceil(weights.shape[0] / self.bs)):
-
             selection_slice = slice(idx * self.bs, min((idx + 1) * self.bs, weights.shape[0]))
             with torch.no_grad():
-                # Get the softmax probabilities of the target class
-                weights[selection_slice] = F.softmax(self.model(masked_input[selection_slice]), dim=1)[:, class_idx]
+                #  Get the softmax probabilities of the target class
+                # weights[selection_slice] = F.softmax(self.model(masked_input[selection_slice]), dim=1)[:, class_idx]
+                out = self.model(masked_input[selection_slice])
+
+                weights[selection_slice] = F.softmax(self.model.reparameterize(out[1], out[2]), dim=1)[:, class_idx]
+
         # Reenable hook updates
         self._hooks_enabled = True
         # Put back the model in the correct mode
         self.model.training = origin_mode
+
         return weights
 
     def __repr__(self) -> str:
@@ -227,15 +225,17 @@ class SSCAM(ScoreCAM):
     """
 
     def __init__(
-        self,
-        model: nn.Module,
-        target_layer: Optional[str] = None,
-        batch_size: int = 32,
-        num_samples: int = 35,
-        std: float = 2.0,
-        input_shape: Tuple[int, ...] = (3, 224, 224),
+            self,
+            model: nn.Module,
+            target_layer: Optional[str] = None,
+            batch_size: int = 32,
+            num_samples: int = 35,
+            std: float = 2.0,
+            input_shape: Tuple[int, ...] = (3, 224, 224),
     ) -> None:
+
         super().__init__(model, target_layer, batch_size, input_shape)
+
         self.num_samples = num_samples
         self.std = std
         self._distrib = torch.distributions.normal.Normal(0, self.std)
@@ -247,7 +247,7 @@ class SSCAM(ScoreCAM):
         self.hook_a: Tensor
         upsampled_a = self._normalize(self.hook_a, self.hook_a.ndim - 2)
 
-        # Upsample it to input_size
+        #  Upsample it to input_size
         # 1 * O * M * N
         spatial_dims = self._input.ndim - 2
         interpolation_mode = 'bilinear' if spatial_dims == 2 else 'trilinear' if spatial_dims == 3 else 'nearest'
@@ -270,16 +270,15 @@ class SSCAM(ScoreCAM):
             noisy_m = self._input * (upsampled_a +
                                      self._distrib.sample(self._input.size()).to(device=self._input.device))
 
-            # Process by chunk (GPU RAM limitation)
+            #  Process by chunk (GPU RAM limitation)
             for idx in range(math.ceil(weights.shape[0] / self.bs)):
-
                 selection_slice = slice(idx * self.bs, min((idx + 1) * self.bs, weights.shape[0]))
                 with torch.no_grad():
-                    # Get the softmax probabilities of the target class
-                    weights[selection_slice] += F.softmax(self.model(noisy_m[selection_slice]), dim=1)[:, class_idx]
-
+                    #  Get the softmax probabilities of the target class
+                    temp_out = self.model(noisy_m[selection_slice])
+                    weights[selection_slice] += F.softmax(self.model.reparameterize(temp_out[1], temp_out[2]), dim=1)[:,
+                                                class_idx]
         weights.div_(self.num_samples)
-
         # Reenable hook updates
         self._hooks_enabled = True
         # Put back the model in the correct mode
@@ -335,12 +334,12 @@ class ISCAM(ScoreCAM):
     """
 
     def __init__(
-        self,
-        model: nn.Module,
-        target_layer: Optional[str] = None,
-        batch_size: int = 32,
-        num_samples: int = 10,
-        input_shape: Tuple[int, ...] = (3, 224, 224),
+            self,
+            model: nn.Module,
+            target_layer: Optional[str] = None,
+            batch_size: int = 32,
+            num_samples: int = 10,
+            input_shape: Tuple[int, ...] = (3, 224, 224),
     ) -> None:
 
         super().__init__(model, target_layer, batch_size, input_shape)
@@ -354,7 +353,7 @@ class ISCAM(ScoreCAM):
         self.hook_a: Tensor
         upsampled_a = self._normalize(self.hook_a, self.hook_a.ndim - 2)
 
-        # Upsample it to input_size
+        #  Upsample it to input_size
         # 1 * O * M * N
         spatial_dims = self._input.ndim - 2
         interpolation_mode = 'bilinear' if spatial_dims == 2 else 'trilinear' if spatial_dims == 3 else 'nearest'
@@ -378,16 +377,18 @@ class ISCAM(ScoreCAM):
         for _idx in range(self.num_samples):
             fmap += (_idx + 1) / self.num_samples * self._input * upsampled_a
 
-            # Process by chunk (GPU RAM limitation)
+            #  Process by chunk (GPU RAM limitation)
             for idx in range(math.ceil(weights.shape[0] / self.bs)):
-
                 selection_slice = slice(idx * self.bs, min((idx + 1) * self.bs, weights.shape[0]))
                 with torch.no_grad():
-                    # Get the softmax probabilities of the target class
-                    weights[selection_slice] += F.softmax(self.model(fmap[selection_slice]), dim=1)[:, class_idx]
+                    #  Get the softmax probabilities of the target class
+                    temp_out = self.model(fmap[selection_slice])
+                    weights[selection_slice] += F.softmax(self.model.reparameterize(temp_out[1], temp_out[2]), dim=1)[:,
+                                                class_idx]
 
         # Reenable hook updates
         self._hooks_enabled = True
         # Put back the model in the correct mode
         self.model.training = origin_mode
+
         return weights
