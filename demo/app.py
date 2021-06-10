@@ -86,10 +86,9 @@ def main():
         with st.spinner('Loading model...'):
             model = models.__dict__[tv_model](pretrained=True).eval()
         default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
-    tv_model = st.sidebar.selectbox("decoder_model", TV_MODELS)
     l_num = list(range(32))
-    latent_num = st.sidebar.selectbox("latent_num", l_num)
-    vae_model = st.sidebar.selectbox("VAE model", VAE_MODELS)
+    latent_pos = st.sidebar.selectbox("latent_pos", l_num)
+    vae_model = st.sidebar.selectbox("VAE_structure", VAE_MODELS)
     # if vae_model is not None and latent_num is not None:
     #     with st.spinner('Loading model...'):
     #         model = models.__dict__[tv_model](pretrained=True).eval()
