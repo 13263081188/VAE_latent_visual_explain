@@ -98,7 +98,10 @@ def main():
     if vae_model == beta_:
         beta = st.sidebar.selectbox("beta_value", [0.5,1,2])
         mode_name += str(beta)
-    print(cams.__dict__)
+    print("cams__________________________Dictt")
+    for qwe in cams.__dict__:
+        print(qwe,cams.__dict__[qwe])
+    # print(cams.__dict__)
     model = cams.__dict__[mode_name](32).eval()
     checkpoint = torch.load('..\pth\model_best.pth', map_location='cpu')
     model.load_state_dict(checkpoint['state_dict'])
