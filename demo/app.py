@@ -73,7 +73,7 @@ def main():
         # print("IMG",type(img))
 
         zz.image(img, use_column_width=True)
-    if zz.form_submit_button("DONT'touch me"):
+    if zz.form_submit_button("Input Image"):
         # if uploaded_file is not None:
         # st.balloons()
         pass
