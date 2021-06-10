@@ -15,7 +15,7 @@ from torchvision.transforms.functional import resize, to_tensor, normalize, to_p
 from torchcam import cams
 from torchcam.utils import overlay_mask
 import time
-
+import torch
 CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 # TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
 ENCODER = ["resnet18","con"]
@@ -99,6 +99,8 @@ def main():
         beta = st.sidebar.selectbox("beta_value", [0.5,1,2])
         mode_name += str(beta)
     model = cams.__dict__[mode_name](32).eval()
+    checkpoint = torch.load('..\pth\model_best.pth', map_location='cpu')
+    model.load_state_dict(checkpoint['state_dict'])
     # if vae_model is not None and latent_num is not None:
     #     with st.spinner('Loading model...'):
     #         model = models.__dict__[tv_model](pretrained=True).eval()
@@ -140,7 +142,9 @@ def main():
                     img_tensor = normalize(to_tensor(resize(img, (224, 224))), [0.485, 0.456, 0.406],
                                            [0.229, 0.224, 0.225])
                     # Forward the image to the model
-                    out = model(img_tensor.unsqueeze(0))
+                    scores = model(img_tensor.unsqueeze(0))
+                    mu = scores[1]
+                    logvar = scores[2]
                     # Select the target class
                     # if class_selection == "Predicted class (argmax)":
                     #     class_idx = out.squeeze(0).argmax().item()
@@ -148,7 +152,7 @@ def main():
                     #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
 
                     # Retrieve the CAM
-                    activation_map = cam_extractor(int(latent_pos), out)
+                    activation_map = cam_extractor(int(latent_pos), model.reparameterize(mu,logvar))
                     print("avtivation_map", type(activation_map))
                     print(activation_map.size())
                     x, y, z = cols[i].beta_columns(3)
