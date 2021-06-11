@@ -8,7 +8,7 @@ from typing import Optional, Tuple
 
 from .core import _CAM
 from .utils import locate_linear_layer
-import model
+# import model
 
 __all__ = ['CAM', 'ScoreCAM', 'SSCAM', 'ISCAM']
 
@@ -35,7 +35,6 @@ class CAM(_CAM):
         >>> cam = CAM(model, 'layer4', 'fc')
         >>> with torch.no_grad(): out = model(input_tensor)
         >>> cam(class_idx=100)
-
     Args:
         model: input model
         target_layer: name of the target layer
@@ -66,7 +65,6 @@ class CAM(_CAM):
 
     def _get_weights(self, class_idx: int, scores: Optional[Tensor] = None) -> Tensor:
         """Computes the weight coefficients of the hooked activation maps"""
-
         # Take the FC weights of the target class
         return self._fc_weights[class_idx, :]
 
