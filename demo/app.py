@@ -12,7 +12,7 @@ from PIL import Image
 from io import BytesIO
 from torchvision import models
 from torchvision.transforms.functional import resize, to_tensor, normalize, to_pil_image
-from torchcam import cams
+from torch_cam import cams
 from torchcam.utils import overlay_mask
 import time
 import torch
