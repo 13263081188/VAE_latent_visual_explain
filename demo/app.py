@@ -3,19 +3,16 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import requests
 import streamlit as st
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 from PIL import Image
 from io import BytesIO
-from torchvision import models
 from torchvision.transforms.functional import resize, to_tensor, normalize, to_pil_image
-from torch_cam import cams
+from torchcam import cams
 from torchcam.utils import overlay_mask
 import time
 import torch
+import convae
 CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 # TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
 ENCODER = ["resnet18","Conv"]
@@ -67,16 +64,12 @@ def main():
         # st.balloons()
         #this kind of format is jpeg,<class 'PIL.JpegImagePlugin.JpegImageFile'>
         # print("Image.open(BytesIO(uploaded_file.read()), mode='r')",type(Image.open(BytesIO(uploaded_file.read()), mode='r')))
-
         #this kind of format is <class 'bytes'>
         # print("uploaded_file.read()",
         #       type(uploaded_file.read()))
-
         img = Image.open(BytesIO(uploaded_file.read()), mode='r').convert('RGB')
-
         #this kind of format is  <class 'PIL.Image.Image'>
         # print("IMG",type(img))
-
         zz.image(img, use_column_width=True)
     if zz.form_submit_button("Input Image"):
         # if uploaded_file is not None:
@@ -100,9 +93,9 @@ def main():
         mode_name += str(beta)
     print("cams__________________________Dictt")
     for qwe in cams.__dict__:
-        print(qwe,cams.__dict__[qwe])
+        print(qwe, cams.__dict__[qwe])
     # print(cams.__dict__)
-    model = cams.__dict__[mode_name](32).eval()
+    model = convae(32).eval()
     checkpoint = torch.load('..\pth\model_best.pth', map_location='cpu')
     model.load_state_dict(checkpoint['state_dict'])
     # if vae_model is not None and latent_num is not None:
@@ -251,7 +244,6 @@ def main():
                     # cols_3.write("1")
                     # cols_2.pyplot(fig)
                     list1[i].pyplot(fig)
-                    import random
                     list1[i].text("time:"+str(round((time.time()-start)/1000,3))+'s')
                     # z.image(img,use_column_width=True)
                     # z.image(im, use_column_width=True)
