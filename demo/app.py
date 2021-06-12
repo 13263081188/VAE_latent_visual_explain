@@ -29,10 +29,11 @@ beta_= [0.5,1,2]
 # @st.cache
 def main():
         # Wide mode
+        m = ""
         print("++++__________________________Dictt")
         print('test_in_____________________________________________________________________________')
         import os
-        print(os.getcwd())
+        m = os.getcwd()
         # da_ = torch.load('..\\..\\pth\\checkpoint.pth', map_location='cpu')
         # layer_name = (da_['state_dict']).keys()
         print()
@@ -49,7 +50,7 @@ def main():
 
         # cam_ for i in range(1000)
         cols = [st.form(str(i)) for i in range(len(CAM_METHODS))]
-        # cols[0].write("Input image")
+        # cols[0].write(m)
         # zz.form_submit_button("DONT'touch me")
         st.write('\n')
         for i in range(len(CAM_METHODS)):
