@@ -34,10 +34,9 @@ def main():
         print('test_in_____________________________________________________________________________')
         import os
         m = os.getcwd()
-        da_ = torch.load('pth\\checkpoint.pth', map_location='cpu')
-        layer_name = (da_['state_dict']).keys()
+        # da_ = torch.load('..\\..\\pth\\checkpoint.pth', map_location='cpu')
+        # layer_name = (da_['state_dict']).keys()
         print()
-        m = layer_name
         print("test_out")
         print("test_in_out")
         st.set_page_config(layout="wide",page_title="变分自动编码器可视化解释器")
