@@ -153,11 +153,11 @@ def main():
                     )
                 print("out_int")
                 # st.write(cam_method)
-                st.balloons()
+                # st.balloons()
                 if uploaded_file is None:
                     st.sidebar.error("Please upload an image first")
                 else:
-                    st.balloons()
+                    # st.balloons()
                     with st.spinner('Analyzing...'):
                         # Preprocess image
                         img_tensor = normalize(to_tensor(resize(img, (28, 28))), [0.485],
