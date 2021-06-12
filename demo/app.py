@@ -31,7 +31,7 @@ def main():
         print("++++__________________________Dictt")
         st.set_page_config(layout="wide",page_title="春季毕设——VAE可视化解释器")
         # Designing the interface
-        st.title("VAE可视化解释系统")
+        st.title("变分自动编码器可视化解释系统")
         # For newline
         st.write('\n')
         test = st.beta_columns(3)
