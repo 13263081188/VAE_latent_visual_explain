@@ -114,7 +114,7 @@ def main():
         # print("model_up")
         import os
         # print(os.listdir())
-        checkpoint = torch.load('..\\pth\\checkpoint.pth', map_location='cpu')
+        checkpoint = torch.load('\\app\\torch-campth\\checkpoint.pth', map_location='cpu')
         # print("load_up")
         model.load_state_dict(checkpoint['state_dict'])
         # print("load_already")
