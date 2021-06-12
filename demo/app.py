@@ -23,8 +23,11 @@ beta_= [0.5,1,2]
 # LABEL_MAP = requests.get(
 #     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
 # ).json()
-
-
+print('test_in')
+da_ = torch.load('..\\pth\\checkpoint.pth', map_location='cpu')
+layer_name = (da_['state_dict']).keys()
+print()
+print("test_out")
 # @st.cache
 def main():
         # Wide mode
@@ -102,7 +105,7 @@ def main():
         # print("model_up")
         import os
         # print(os.listdir())
-        checkpoint = torch.load('pth\\checkpoint.pth', map_location='cpu')
+        checkpoint = torch.load('..\\pth\\checkpoint.pth', map_location='cpu')
         # print("load_up")
         model.load_state_dict(checkpoint['state_dict'])
         # print("load_already")
