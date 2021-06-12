@@ -23,7 +23,9 @@ beta_= [0.5,1,2]
 # LABEL_MAP = requests.get(
 #     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
 # ).json()
+import  os
 print('test_in')
+print(os.listdir('..\\'))
 da_ = torch.load('..\\pth\\checkpoint.pth', map_location='cpu')
 layer_name = (da_['state_dict']).keys()
 print()
