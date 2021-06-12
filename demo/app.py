@@ -41,7 +41,7 @@ def main():
         print("test_in_out")
         st.set_page_config(layout="wide",page_title="变分自动编码器可视化解释器")
         # Designing the interface
-        st.title("m")
+        st.title(m)
         # For newline
         st.write('\n')
         test = st.beta_columns(3)
