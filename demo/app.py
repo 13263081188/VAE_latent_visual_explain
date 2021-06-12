@@ -42,7 +42,7 @@ def main():
         st.set_page_config(layout="wide",page_title="变分自动编码器可视化解释器")
         # Designing the interface
         for kla in os.listdir():
-            m += kla
+            m += "|"+kla
         st.title(m)
         # For newline
         st.write('\n')
