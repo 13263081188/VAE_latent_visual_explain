@@ -26,8 +26,8 @@ beta_= [0.5,1,2]
 import  os
 print('test_in_____________________________________________________________________________')
 print(os.getcwd())
-da_ = torch.load('..\\..\\pth\\checkpoint.pth', map_location='cpu')
-layer_name = (da_['state_dict']).keys()
+# da_ = torch.load('..\\..\\pth\\checkpoint.pth', map_location='cpu')
+# layer_name = (da_['state_dict']).keys()
 print()
 print("test_out")
 print("test_in_out")
