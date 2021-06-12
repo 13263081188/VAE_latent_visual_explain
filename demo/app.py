@@ -109,15 +109,15 @@ def main():
         # print()
         # for qwe in cams.__dict__:
         #     print(qwe, cams.__dict__[qwe])
-        # print(cams.__dict__)
+        print(cams.__dict__)
         model = convae.ConvVAE(3).eval()
         # print("model_up")
         import os
         # print(os.listdir())
         checkpoint = torch.load('/app/torch-cam/pth/checkpoint.pth', map_location='cpu')
-        # print("load_up")
+        print("load_up")
         model.load_state_dict(checkpoint['state_dict'])
-        # print("load_already")
+        print("load_already")
         # if vae_model is not None and latent_num is not None:
         #     with st.spinner('Loading model...'):
         #         model = models.__dict__[tv_model](pretrained=True).eval()
