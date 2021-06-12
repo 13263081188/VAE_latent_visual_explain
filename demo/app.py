@@ -13,6 +13,7 @@ from torchcam.utils import overlay_mask
 import time
 import torch
 import convae
+import os
 CAM_METHODS = ["CAM", "GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 # TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
 ENCODER = ["Conv"]
@@ -24,17 +25,18 @@ beta_= [0.5,1,2]
 #     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
 # ).json()
 import  os
-print('test_in_____________________________________________________________________________')
-print(os.getcwd())
-# da_ = torch.load('..\\..\\pth\\checkpoint.pth', map_location='cpu')
-# layer_name = (da_['state_dict']).keys()
-print()
-print("test_out")
-print("test_in_out")
+
 # @st.cache
 def main():
         # Wide mode
         print("++++__________________________Dictt")
+        print('test_in_____________________________________________________________________________')
+        print(os.getcwd())
+        # da_ = torch.load('..\\..\\pth\\checkpoint.pth', map_location='cpu')
+        # layer_name = (da_['state_dict']).keys()
+        print()
+        print("test_out")
+        print("test_in_out")
         st.set_page_config(layout="wide",page_title="变分自动编码器可视化解释器")
         # Designing the interface
         st.title("变分自动编码器可视化解释系统")
