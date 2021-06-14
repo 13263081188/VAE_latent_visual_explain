@@ -84,14 +84,14 @@ def main():
         #     beta = st.sidebar.selectbox("beta_value", [0.5,1,2])
         #     mode_name += str(beta)
         # print()
-        print("MODE_NAME",mode_name)
+        # print("MODE_NAME",mode_name)
         if encoder is not None and vae_model is not None:
             with st.spinner('Loading model...'):
-                print(vae_models.__dict__)
+                # print(vae_models.__dict__)
                 model = vae_models.__dict__[encoder+vae_model](32).eval()
             # default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
 
-        print("camsDictt")
+        # print("camsDictt")
 
         # print()
         # for qwe in cams.__dict__:
@@ -99,31 +99,31 @@ def main():
         # print(cams.__dict__)
 
         # model = convae.ConvVAE(32)
-        print("SSS")
+        # print("SSS")
         checkpoint = torch.load('//app//torch-cam//pth//ConvVAE.pth', map_location='cpu')  # local
-        print("__________________________________________")
-        for i in checkpoint['state_dict'].keys():
-            print(i, checkpoint['state_dict'][i].shape)
-        print("_________________________________________________++++++++++_____")
-        print("SS@")
+        # print("__________________________________________")
+        # for i in checkpoint['state_dict'].keys():
+        #     print(i, checkpoint['state_dict'][i].shape)
+        # print("_________________________________________________++++++++++_____")
+        # print("SS@")
         model.load_state_dict(checkpoint['state_dict'])
-        print("COOL")
+        # print("COOL")
         # model = model.eval()
         # print(model)
-        print("model_up")
+        # print("model_up")
         # print(os.listdir())
         # checkpoint = torch.load('/app/torch-cam/pth/checkpoint.pth', map_location='cpu')#remote
         # checkpoint = torch.load('../pth/resnet18VAE.pth', map_location='cpu')  # local
 
-        print("load_up")
+        # print("load_up")
         # model.load_state_dict(checkpoint['state_dict'])
-        print("load_already")
+        # print("load_already")
         # if vae_model is not None and latent_num is not None:
         #     with st.spinner('Loading model...'):
         #         model = vae_models.__dict__[tv_model](pretrained=True).eval()
         # default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
         # default_layer = ""
-        print(model.eval())
+        # print(model.eval())
         target_layer = "encoder.2"
         # print("heeeeeee")
         # cam_method = st.sidebar.selectbox("CAM method", CAM_METHODS)
@@ -146,7 +146,7 @@ def main():
             # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
             # for i in range(1,4):
             # st.write
-            print("OUT________")
+            # print("OUT________")
             if cols[i].form_submit_button("解释图计算 V" + CAM_METHODS[i]):
                 print("co-------------------------------")
                 st.title("COOO"+CAM_METHODS[i])
