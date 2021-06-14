@@ -99,6 +99,7 @@ def main():
 
         # model = convae.ConvVAE(32)
         # print("SSS")
+        print("check_path",'//app//torch-cam//pth//'+mode_name+'.pth')
         checkpoint = torch.load('//app//torch-cam//pth//'+mode_name+'.pth', map_location='cpu')  # local
         # print("__________________________________________")
         # for i in checkpoint['state_dict'].keys():
