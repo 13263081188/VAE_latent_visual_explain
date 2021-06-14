@@ -1,13 +1,10 @@
 # Copyright (C) 2020-2021, François-Guillaume Fernandez.
-
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
 from matplotlib import cm
 from PIL import Image
-
-
 def overlay_mask(img: Image.Image, mask: Image.Image, colormap: str = 'jet', alpha: float = 0.7) -> Image.Image:
     """Overlay a colormapped mask on a background image
     Args:
@@ -18,7 +15,6 @@ def overlay_mask(img: Image.Image, mask: Image.Image, colormap: str = 'jet', alp
     Returns:
         overlayed image
     """
-
     if not isinstance(img, Image.Image) or not isinstance(mask, Image.Image):
         raise TypeError('img and mask arguments need to be PIL.Image')
     if not isinstance(alpha, float) or alpha < 0 or alpha >= 1:
@@ -30,3 +26,12 @@ def overlay_mask(img: Image.Image, mask: Image.Image, colormap: str = 'jet', alp
     # Overlay the image with the mask
     overlayed_img = Image.fromarray((alpha * np.asarray(img) + (1 - alpha) * overlay).astype(np.uint8))
     return overlayed_img
+
+
+
+
+
+
+
+
+

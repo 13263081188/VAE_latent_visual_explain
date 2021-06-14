@@ -17,7 +17,7 @@ class CAM(_CAM):
     """Implements a class activation map extractor as described in `"Learning Deep Features for Discriminative
     Localization" <https://arxiv.org/pdf/1512.04150.pdf>`_.
 
-    The Class Activation Map (CAM) is defined for image classification models that have global pooling at the end
+    The Class Activation Map (CAM) is defined for image classification vae_models that have global pooling at the end
     of the visual feature extraction block. The localization map is computed as follows:
 
     .. math::
@@ -29,7 +29,7 @@ class CAM(_CAM):
     connected layer..
 
     Example::
-        >>> from torchvision.models import resnet18
+        >>> from torchvision.vae_models import resnet18
         >>> from torchcam.cams import CAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = CAM(model, 'layer4', 'fc')
@@ -54,6 +54,7 @@ class CAM(_CAM):
 
         # If the layer is not specified, try automatic resolution
         if fc_layer is None:
+            print("not_linear")
             fc_layer = locate_linear_layer(model)
             # Warn the user of the choice
             if isinstance(fc_layer, str):
@@ -95,7 +96,7 @@ class ScoreCAM(_CAM):
     where :math:`\\odot` refers to the element-wise multiplication and :math:`U` is the upsampling operation.
 
     Example::
-        >>> from torchvision.models import resnet18
+        >>> from torchvision.vae_models import resnet18
         >>> from torchcam.cams import ScoreCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = ScoreCAM(model, 'layer4')
@@ -207,7 +208,7 @@ class SSCAM(ScoreCAM):
     with a standard deviation of :math:`\\sigma`.
 
     Example::
-        >>> from torchvision.models import resnet18
+        >>> from torchvision.vae_models import resnet18
         >>> from torchcam.cams import SSCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = SSCAM(model, 'layer4')
@@ -317,7 +318,7 @@ class ISCAM(ScoreCAM):
     with a standard deviation of :math:`\\sigma`.
 
     Example::
-        >>> from torchvision.models import resnet18
+        >>> from torchvision.vae_models import resnet18
         >>> from torchcam.cams import ISSCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = ISCAM(model, 'layer4')

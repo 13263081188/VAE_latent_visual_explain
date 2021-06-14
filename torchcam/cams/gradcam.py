@@ -80,7 +80,7 @@ class GradCAM(_GradCAM):
     and :math:`Y^{(c)}` is the model output score for class :math:`c` before softmax.
 
     Example::
-        >>> from torchvision.models import resnet18
+        >>> from torchvision.vae_models import resnet18
         >>> from torchcam.cams import GradCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = GradCAM(model, 'layer4')
@@ -132,7 +132,7 @@ class GradCAMpp(_GradCAM):
     if :math:`\\frac{\\partial Y^{(c)}}{\\partial A_k(i, j)} = 1` else :math:`0`.
 
     Example::
-        >>> from torchvision.models import resnet18
+        >>> from torchvision.vae_models import resnet18
         >>> from torchcam.cams import GradCAMpp
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = GradCAMpp(model, 'layer4')
@@ -203,7 +203,7 @@ class SmoothGradCAMpp(_GradCAM):
     which is actually :math:`\\frac{1}{n} \\sum\\limits_{k=1}^n D^{(c, 1)}_k(i,j)` in the paper.
 
     Example::
-        >>> from torchvision.models import resnet18
+        >>> from torchvision.vae_models import resnet18
         >>> from torchcam.cams import SmoothGradCAMpp
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = SmoothGradCAMpp(model, 'layer4')
@@ -310,7 +310,7 @@ class XGradCAM(_GradCAM):
     and :math:`Y^{(c)}` is the model output score for class :math:`c` before softmax.
 
     Example::
-        >>> from torchvision.models import resnet18
+        >>> from torchvision.vae_models import resnet18
         >>> from torchcam.cams import XGradCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = XGradCAM(model, 'layer4')

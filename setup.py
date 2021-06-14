@@ -53,7 +53,7 @@ setup(
     name=package_name,
     version=version,
     author='François-Guillaume Fernandez',
-    description='Class activation maps for your PyTorch CNN models',
+    description='Class activation maps for your PyTorch CNN vae_models',
     long_description=readme,
     long_description_content_type="text/markdown",
     url='https://github.com/frgfm/torch-cam',

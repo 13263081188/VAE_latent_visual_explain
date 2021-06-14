@@ -55,7 +55,6 @@ def locate_candidate_layer(mod: nn.Module, input_shape: Tuple[int, ...] = (3, 22
             break
         else:
             candidate_layer = layer_name
-
     return candidate_layer
 
 
@@ -68,11 +67,12 @@ def locate_linear_layer(mod: nn.Module) -> Optional[str]:
     Returns:
         str: the candidate layer
     """
-
+    print("locate_linear_layer")
     candidate_layer = None
     for layer_name, m in mod.named_modules():
+        print(layer_name,m,"_+_+_+_+__+_+_+_+_+")
         if isinstance(m, nn.Linear):
+            print("is_in")
             candidate_layer = layer_name
             break
-
     return candidate_layer
