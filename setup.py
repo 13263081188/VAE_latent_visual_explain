@@ -14,7 +14,7 @@ from setuptools import find_packages, setup
 
 version = '0.2.1a0'
 sha = 'Unknown'
-package_name = 'torchcam'
+package_name = 'latent_cam'
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -31,7 +31,7 @@ print("Building wheel {}-{}".format(package_name, version))
 
 
 def write_version_file():
-    version_path = os.path.join(cwd, 'torchcam', 'version.py')
+    version_path = os.path.join(cwd, 'latent_cam', 'version.py')
     with open(version_path, 'w') as f:
         f.write("__version__ = '{}'\n".format(version))
 

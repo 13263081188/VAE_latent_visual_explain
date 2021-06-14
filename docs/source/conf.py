@@ -25,7 +25,7 @@ import torchcam
 # -- Project information -----------------------------------------------------
 
 master_doc = 'index'
-project = 'torchcam'
+project = 'latent_cam'
 copyright = '2020-2021, François-Guillaume Fernandez'
 author = 'François-Guillaume Fernandez'
 

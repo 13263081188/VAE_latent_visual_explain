@@ -81,7 +81,7 @@ class GradCAM(_GradCAM):
 
     Example::
         >>> from torchvision.vae_models import resnet18
-        >>> from torchcam.cams import GradCAM
+        >>> from latent_cam.cams import GradCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = GradCAM(model, 'layer4')
         >>> scores = model(input_tensor)
@@ -133,7 +133,7 @@ class GradCAMpp(_GradCAM):
 
     Example::
         >>> from torchvision.vae_models import resnet18
-        >>> from torchcam.cams import GradCAMpp
+        >>> from latent_cam.cams import GradCAMpp
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = GradCAMpp(model, 'layer4')
         >>> scores = model(input_tensor)
@@ -204,7 +204,7 @@ class SmoothGradCAMpp(_GradCAM):
 
     Example::
         >>> from torchvision.vae_models import resnet18
-        >>> from torchcam.cams import SmoothGradCAMpp
+        >>> from latent_cam.cams import SmoothGradCAMpp
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = SmoothGradCAMpp(model, 'layer4')
         >>> scores = model(input_tensor)
@@ -311,7 +311,7 @@ class XGradCAM(_GradCAM):
 
     Example::
         >>> from torchvision.vae_models import resnet18
-        >>> from torchcam.cams import XGradCAM
+        >>> from latent_cam.cams import XGradCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = XGradCAM(model, 'layer4')
         >>> scores = model(input_tensor)

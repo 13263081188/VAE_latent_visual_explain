@@ -9,8 +9,8 @@ from torchvision.transforms.functional import resize, to_tensor, normalize, to_p
 import sys
 sys.path.append('/app/torch-cam')
 print(sys.path)
-from torchcam import cams
-from torchcam.utils import overlay_mask
+from latent_cam import cams
+from latent_cam.utils import overlay_mask
 import time
 import torch
 # import convae

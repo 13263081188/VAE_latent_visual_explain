@@ -27,9 +27,9 @@ requirements:
 test:
   # Python imports
   imports:
-    - torchcam
-    - torchcam.cams
-    - torchcam.utils
+    - latent_cam
+    - latent_cam.cams
+    - latent_cam.utils
   requires:
     - python
 

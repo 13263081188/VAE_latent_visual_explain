@@ -30,7 +30,7 @@ class CAM(_CAM):
 
     Example::
         >>> from torchvision.vae_models import resnet18
-        >>> from torchcam.cams import CAM
+        >>> from latent_cam.cams import CAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = CAM(model, 'layer4', 'fc')
         >>> with torch.no_grad(): out = model(input_tensor)
@@ -97,7 +97,7 @@ class ScoreCAM(_CAM):
 
     Example::
         >>> from torchvision.vae_models import resnet18
-        >>> from torchcam.cams import ScoreCAM
+        >>> from latent_cam.cams import ScoreCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = ScoreCAM(model, 'layer4')
         >>> with torch.no_grad(): out = model(input_tensor)
@@ -209,7 +209,7 @@ class SSCAM(ScoreCAM):
 
     Example::
         >>> from torchvision.vae_models import resnet18
-        >>> from torchcam.cams import SSCAM
+        >>> from latent_cam.cams import SSCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = SSCAM(model, 'layer4')
         >>> with torch.no_grad(): out = model(input_tensor)
@@ -319,7 +319,7 @@ class ISCAM(ScoreCAM):
 
     Example::
         >>> from torchvision.vae_models import resnet18
-        >>> from torchcam.cams import ISSCAM
+        >>> from latent_cam.cams import ISSCAM
         >>> model = resnet18(pretrained=True).eval()
         >>> cam = ISCAM(model, 'layer4')
         >>> with torch.no_grad(): out = model(input_tensor)
