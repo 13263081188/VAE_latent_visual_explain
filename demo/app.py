@@ -42,6 +42,7 @@ def main():
         zz = test[0].form("input_image")
         zz.write("INPUT_IMAGE")
         zz.form_submit_button("dont'touch")
+
         # cam_ for i in range(1000)
         cols = [st.form(str(i)) for i in range(len(CAM_METHODS))]
         # cols[0].write(m)
@@ -113,7 +114,7 @@ def main():
         # print("model_up")
         # print(os.listdir())
         # checkpoint = torch.load('/app/torch-cam/pth/checkpoint.pth', map_location='cpu')#remote
-        # checkpoint = torch.load('../pth/resnet18VAE.pth', map_location='cpu')  # local
+        # checkpoint = torch.load('../pth/Resnet18VAE.pth', map_location='cpu')  # local
 
         # print("load_up")
         # model.load_state_dict(checkpoint['state_dict'])
