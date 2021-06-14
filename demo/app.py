@@ -87,6 +87,7 @@ def main():
             with st.spinner('Loading model...'):
                 # print(vae_models.__dict__)
                 model = vae_models.__dict__[encoder+vae_model](32).eval()
+                print(model)
             # default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
 
 
