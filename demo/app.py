@@ -9,6 +9,7 @@ from torchvision.transforms.functional import resize, to_tensor, normalize, to_p
 import sys
 sys.path.append('/app/torch-cam')
 print(sys.path)
+
 from latent_cam import cams
 from latent_cam.utils import overlay_mask
 import time
@@ -28,8 +29,6 @@ beta_= [0.5,1,2]
 # LABEL_MAP = requests.get(
 #     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
 # ).json()
-
-
 # @st.cache
 def main():
         print(sys.path)
@@ -42,7 +41,6 @@ def main():
         zz = test[0].form("input_image")
         zz.write("INPUT_IMAGE")
         zz.form_submit_button("dont'touch")
-
         # cam_ for i in range(1000)
         cols = [st.form(str(i)) for i in range(len(CAM_METHODS))]
         # cols[0].write(m)
@@ -101,7 +99,7 @@ def main():
 
         # model = convae.ConvVAE(32)
         # print("SSS")
-        checkpoint = torch.load('//app//torch-cam//pth//'+encoder+vae_model+'.pth', map_location='cpu')  # local
+        checkpoint = torch.load('//app//torch-cam//pth//'+mode_name+'.pth', map_location='cpu')  # local
         # print("__________________________________________")
         # for i in checkpoint['state_dict'].keys():
         #     print(i, checkpoint['state_dict'][i].shape)
