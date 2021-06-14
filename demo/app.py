@@ -84,6 +84,7 @@ def main():
         #     beta = st.sidebar.selectbox("beta_value", [0.5,1,2])
         #     mode_name += str(beta)
         # print()
+        print("MODE_NAME",mode_name)
         if encoder is not None and vae_model is not None:
             with st.spinner('Loading model...'):
                 print(vae_models.__dict__)
