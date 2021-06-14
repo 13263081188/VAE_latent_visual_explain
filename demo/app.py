@@ -41,7 +41,7 @@ def main():
         st.write('\n')
         test = st.beta_columns(3)
         zz = test[0].form("input_image")
-        # zz.form_submit_button("dont'touch")
+        zz.form_submit_button("dont'touch")
         # cam_ for i in range(1000)
         cols = [st.form(str(i)) for i in range(len(CAM_METHODS))]
         # cols[0].write(m)
