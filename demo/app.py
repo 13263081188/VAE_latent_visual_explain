@@ -90,16 +90,17 @@ def main():
                 model = vae_models.__dict__[encoder+vae_model](32).eval()
             # default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
 
-        # print("camsDictt")
 
+        # print("camsDictt")
         # print()
         # for qwe in cams.__dict__:
         #     print(qwe, cams.__dict__[qwe])
         # print(cams.__dict__)
 
+
         # model = convae.ConvVAE(32)
         # print("SSS")
-        checkpoint = torch.load('//app//torch-cam//pth//ConvVAE.pth', map_location='cpu')  # local
+        checkpoint = torch.load('//app//torch-cam//pth//'+encoder+vae_model+'.pth', map_location='cpu')  # local
         # print("__________________________________________")
         # for i in checkpoint['state_dict'].keys():
         #     print(i, checkpoint['state_dict'][i].shape)
