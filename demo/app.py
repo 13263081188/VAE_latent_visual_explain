@@ -100,13 +100,13 @@ def main():
         # model = convae.ConvVAE(32)
         # print("SSS")
         print("check_path",'//app//torch-cam//pth//'+mode_name+'.pth')
-        checkpoint = torch.load('//app//torch-cam//pth//'+mode_name+'.pth', map_location='cpu')  # local
+        # checkpoint = torch.load('//app//torch-cam//pth//'+mode_name+'.pth', map_location='cpu')  # local
         # print("__________________________________________")
         # for i in checkpoint['state_dict'].keys():
         #     print(i, checkpoint['state_dict'][i].shape)
         # print("_________________________________________________++++++++++_____")
         # print("SS@")
-        model.load_state_dict(checkpoint['state_dict'])
+        # model.load_state_dict(checkpoint['state_dict'])
         # print("COOL")
         # model = model.eval()
         # print(model)
