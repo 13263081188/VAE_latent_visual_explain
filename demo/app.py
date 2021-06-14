@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from io import BytesIO
 from torchvision.transforms.functional import resize, to_tensor, normalize, to_pil_image
+import sys
+sys.path.append('/app/torch-cam')
+print(sys.path)
 from torchcam import cams
 from torchcam.utils import overlay_mask
 import time
 import torch
 # import convae
-import sys
-sys.path.append('/app/torch-cam')
-print(sys.path)
 import vae_models
 
 # import ConvVAE
@@ -151,7 +151,6 @@ def main():
                 print("co-------------------------------")
                 st.title("COOO"+CAM_METHODS[i])
                 cam_method = CAM_METHODS[i]
-
                 st.write(cam_method)
                 print("int")
                 if cam_method is not None:
