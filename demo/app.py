@@ -101,6 +101,7 @@ def main():
             model_str = model_stringio.read()
             st.write(model_str)
             #创建临时目录存放model
+            print("LIST_DIR_____________________________-")
             print(os.listdir())
             os.mkdir("temp_models")
             #将模型写入指定文件夹
