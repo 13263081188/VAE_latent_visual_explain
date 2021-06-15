@@ -103,7 +103,8 @@ def main():
             #创建临时目录存放model
             print("LIST_DIR_____________________________-")
             print(os.listdir())
-            os.mkdir("temp_models")
+            if "temp_models" not in os.lisdir():
+                os.mkdir("temp_models")
             #将模型写入指定文件夹
             write_model = open("temp_models//"+uploaded_file_py.name,'w')
             #加载初始化文件
