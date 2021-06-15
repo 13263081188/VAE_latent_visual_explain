@@ -4,31 +4,42 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 from PIL import Image
-from io import BytesIO
+from io import BytesIO,StringIO
 from torchvision.transforms.functional import resize, to_tensor, normalize, to_pil_image
 import sys
-sys.path.append('/app/torch-cam')
-print(sys.path)
+import os
+sys.path.append('//app//torch-cam')
+sys.path.append('..//torch-cam')
 
+print(sys.path)
 from latent_cam import cams
 from latent_cam.utils import overlay_mask
 import time
 import torch
-# import convae
-import vae_models
 
+
+# import convae
+# import vae_models
+import temp_models
 # import ConvVAE
 
 CAM_METHODS = ["GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
 # TV_MODELS = ["resnet18", "resnet50", "mobilenet_v2", "mobilenet_v3_small", "mobilenet_v3_large"]
-ENCODER = ["Conv","Resnet18"]
-TARGET= {"ConvVAE":"encoder.2"}
-VAE_MODELS = ["VAE","BETA-VAE"]
+# ENCODER = ["Conv","Resnet18"]
+# TARGET= {"ConvVAE":"encoder.2"}
+# VAE_MODELS = ["VAE","BETA-VAE"]
 
 beta_= [0.5,1,2]
 # LABEL_MAP = requests.get(
 #     "https://raw.githubusercontent.com/anishathalye/imagenet-simple-labels/master/imagenet-simple-labels.json"
 # ).json()
+def get_encoder_con_layer(x):
+    submodule_dict = dict(x.named_modules())
+    conv = []
+    for i in submodule_dict:
+        if 'encoder' in i:
+            conv.append(i)
+    return conv
 # @st.cache
 def main():
         print(sys.path)
@@ -41,114 +52,96 @@ def main():
         zz = test[0].form("input_image")
         zz.write("INPUT_IMAGE")
         zz.form_submit_button("dont'touch")
-        # cam_ for i in range(1000)
+
+
         cols = [st.form(str(i)) for i in range(len(CAM_METHODS))]
-        # cols[0].write(m)
-        # zz.form_submit_button("DONT'touch me")
         st.write('\n')
         for i in range(len(CAM_METHODS)):
             cols[i].write(CAM_METHODS[i])
         all = st.form("ALL")
         all.header("COMPUTE_ALL")
 
-
+        all.write()
         # Sidebar
         # File selection
+
         st.sidebar.title("Input selection")
         # Disabling warning
         st.set_option('deprecation.showfileUploaderEncoding', False)
         # Choose your own image
-        uploaded_file = st.sidebar.file_uploader("Upload image", type=['png', 'jpeg', 'jpg'])
-        if uploaded_file is not None:
+        uploaded_file_img = st.sidebar.file_uploader("Upload image", type=['png', 'jpeg', 'jpg'])
+        if uploaded_file_img is not None:
             #this kind of format is jpeg,<class 'PIL.JpegImagePlugin.JpegImageFile'>
             # print("Image.open(BytesIO(uploaded_file.read()), mode='r')",type(Image.open(BytesIO(uploaded_file.read()), mode='r')))
             #this kind of format is <class 'bytes'>
             # print("uploaded_file.read()",
             #       type(uploaded_file.read()))
-            img = Image.open(BytesIO(uploaded_file.read()), mode='r').convert('RGB')
+            img = Image.open(BytesIO(uploaded_file_img.read()), mode='r').convert('RGB')
             # img = resize(img, (28, 28)).convert('RGB')
             #this kind of format is  <class 'PIL.Image.Image'>
             zz.image(img, use_column_width=True)
 
+        uploaded_file_pth = st.sidebar.file_uploader("Upload model_parameters", type=['pth'])
+        if uploaded_file_pth is not None:
+            #加载模型参数，将tensor变为cpu类型
+            checkpoint = torch.load(BytesIO(uploaded_file_pth.read()), map_location='cpu')
+            # print(checkpoint['state_dict'].keys())
+            layer = checkpoint['state_dict'].keys()
+            #获取VAE中隐变量的个数
+            latent_size = len(checkpoint['state_dict']['fc1.bias'])
+            print("latent_size______________________________________________________________",latent_size)
+            print("CHECKCHECKCHECKCHECK___________________CHECK________CHECK___________________")
+
+        uploaded_file_py = st.sidebar.file_uploader("Upload model.py", type=['py'])
+        if uploaded_file_py is not None:
+            #上传模型文件，
+            model_stringio = StringIO(uploaded_file_py.getvalue().decode("utf-8"))
+            #以string流读入文件内容
+            st.write(uploaded_file_py.name)
+            model_str = model_stringio.read()
+            st.write(model_str)
+            #将模型写入指定文件夹
+            write_model = open("temp_models\\"+uploaded_file_py.name,'w')
+            #加载初始化文件
+            init_model = open("temp_models\\__init__.py",'a')
+            write_model.write(model_str)
+
+            init_model.write("\nfrom ."+uploaded_file_py.name[:-3]+" import *")
+            #关闭文件
+            write_model.close()
+            init_model.close()
+
+        print("______________________________aaaaaa")
+        import temp_models
+        print(os.listdir('temp_models'))
+        print(temp_models.__dict__.keys())
+        st.write(temp_models.__dict__)
+        for i in temp_models.__dict__:
+            print(i)
+
+        print("+++++++++++++++++++++")
+        #获取文件对象
+        model = temp_models.__dict__[uploaded_file_py.name[:-3]]
+
+
+        con_layer = get_encoder_con_layer(model)
         # Model selection
         st.sidebar.title("Setup")
-        encoder = st.sidebar.selectbox("encoder_model", ENCODER)
-        default_layer = ""
-        l_num = list(range(32))
+        l_num = list(range(latent_size))
         latent_pos = st.sidebar.selectbox("latent_pos", l_num)
-        vae_model = st.sidebar.selectbox("VAE_structure", VAE_MODELS)
-        mode_name = encoder+vae_model
-        # if vae_model == "beta_vae":
-        #     beta = st.sidebar.selectbox("beta_value", [0.5,1,2])
-        #     mode_name += str(beta)
-        # print()
-        # print("MODE_NAME",mode_name)
-        if encoder is not None and vae_model is not None:
-            with st.spinner('Loading model...'):
-                # print(vae_models.__dict__)
-                model = vae_models.__dict__[encoder+vae_model](32).eval()
-                print(model)
-            # default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
+        print("load_state_dict___________________________________++++++++++++++++++++++++++++")
+        model.load_state_dict(checkpoint['state_dict'])
 
-
-        # print("camsDictt")
-        # print()
-        # for qwe in cams.__dict__:
-        #     print(qwe, cams.__dict__[qwe])
-        # print(cams.__dict__)
-
-
-        # model = convae.ConvVAE(32)
-        # print("SSS")
-        print("check_path",'//app//torch-cam//pth//'+mode_name+'.pth')
-        # checkpoint = torch.load('//app//torch-cam//pth//'+mode_name+'.pth', map_location='cpu')  # local
-        # print("__________________________________________")
-        # for i in checkpoint['state_dict'].keys():
-        #     print(i, checkpoint['state_dict'][i].shape)
-        # print("_________________________________________________++++++++++_____")
-        # print("SS@")
-        # model.load_state_dict(checkpoint['state_dict'])
-        # print("COOL")
-        # model = model.eval()
-        # print(model)
-        # print("model_up")
-        # print(os.listdir())
-        # checkpoint = torch.load('/app/torch-cam/pth/checkpoint.pth', map_location='cpu')#remote
-        # checkpoint = torch.load('../pth/Resnet18VAE.pth', map_location='cpu')  # local
-
-        # print("load_up")
-        # model.load_state_dict(checkpoint['state_dict'])
-        # print("load_already")
-        # if vae_model is not None and latent_num is not None:
-        #     with st.spinner('Loading model...'):
-        #         model = vae_models.__dict__[tv_model](pretrained=True).eval()
-        # default_layer = cams.utils.locate_candidate_layer(model, (3, 224, 224))
-        # default_layer = ""
-        # print(model.eval())
-        target_layer = "encoder.2"
-        # print("heeeeeee")
-        # cam_method = st.sidebar.selectbox("CAM method", CAM_METHODS)
-        # st.write(cam_method)
-        # if cam_method is not None:
-        #     cam_extractor = cams.__dict__[cam_method](
-        #         model,
-        #         target_layer=target_layer if len(target_layer) > 0 else None
-        #     )
-        # st.write(cam_method)
-
-        # class_choices = [f"{idx + 1} - {class_name}" for idx, class_name in enumerate(LABEL_MAP)]
-        # class_selection = st.sidebar.selectbox("Class selection", ["Predicted class (argmax)"] + class_choices)
-        # print("heree")
-        form1 = st.form(key="tedt")
-        if form1.form_submit_button("testing"):
-            print("COCOOOCCOCOCOCOCOCOCO")
-
+        target_layer = con_layer[-1]
+        print("con_layer",con_layer)
+        target_layer = st.sidebar.selectbox("select_layer", con_layer)
         for i in range(len(CAM_METHODS)):
             # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
             # for i in range(1,4):
             # st.write
             # print("OUT________")
             if cols[i].form_submit_button("解释图计算 V" + CAM_METHODS[i]):
+
                 print("co-------------------------------")
                 st.title("COOO"+CAM_METHODS[i])
                 cam_method = CAM_METHODS[i]
@@ -308,5 +301,11 @@ def main():
                         list1[i].text("time:"+str(round((time.time()-start)/1000,3))+'s')
                         # z.image(img,use_column_width=True)
                         # z.image(im, use_column_width=True)
+        st.write("delete_the_all_module______________________________________________")
+        # 删除所有的模型文件
+        for i in os.listdir("temp_models"):
+            os.remove(i)
+            # print(model(32))
 if __name__ == '__main__':
     main()
+

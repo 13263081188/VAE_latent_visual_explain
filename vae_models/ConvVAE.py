@@ -20,7 +20,8 @@ class Unflatten(nn.Module):
 
     def forward(self, input):
         return input.view(input.size(0), self.channel, self.height, self.width)
-
+# class conv():
+#     def __init__(self):
 
 class ConvVAE(nn.Module):
     def __init__(self, latent_size: int):

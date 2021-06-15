@@ -1,2 +1,2 @@
-from .convae import *
-from .resnet18_vae import *
+from .ConvVAE import *
+from .Resnet18VAE import *
