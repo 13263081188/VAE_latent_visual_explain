@@ -118,6 +118,8 @@ def main():
 
         print("______________________________aaaaaa")
         print("BEGIN_______")
+
+        print(os.listdir())
         print(sys.path)
 
         print("ENDING_________")
