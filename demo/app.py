@@ -20,7 +20,7 @@ import torch
 
 # import convae
 # import vae_models
-import temp_models
+# import temp_models
 # import ConvVAE
 
 CAM_METHODS = ["GradCAM", "GradCAMpp", "SmoothGradCAMpp", "ScoreCAM", "SSCAM", "ISCAM", "XGradCAM"]
