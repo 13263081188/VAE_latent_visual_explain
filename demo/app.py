@@ -134,7 +134,7 @@ def main():
             print(i)
         print("+++++++++++++++++++++")
         #获取文件对象
-        model = temp_models.__dict__[uploaded_file_py.name[:-3]]
+        # model = temp_models.__dict__[uploaded_file_py.name[:-3]]
 
 
         con_layer = get_encoder_con_layer(model)
