@@ -136,189 +136,189 @@ def main():
         #获取文件对象
         # model = temp_models.__dict__[uploaded_file_py.name[:-3]]
 
-
-        con_layer = get_encoder_con_layer(model)
-        # Model selection
-        st.sidebar.title("Setup")
-        l_num = list(range(latent_size))
-        latent_pos = st.sidebar.selectbox("latent_pos", l_num)
-        print("load_state_dict___________________________________++++++++++++++++++++++++++++")
-        model.load_state_dict(checkpoint['state_dict'])
-
-        target_layer = con_layer[-1]
-        print("con_layer",con_layer)
-        target_layer = st.sidebar.selectbox("select_layer", con_layer)
-        for i in range(len(CAM_METHODS)):
-            # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
-            # for i in range(1,4):
-            # st.write
-            # print("OUT________")
-            if cols[i].form_submit_button("解释图计算 V" + CAM_METHODS[i]):
-
-                print("co-------------------------------")
-                st.title("COOO"+CAM_METHODS[i])
-                cam_method = CAM_METHODS[i]
-                st.write(cam_method)
-                print("int")
-                if cam_method is not None:
-                   cam_extractor = cams.__dict__[cam_method](
-                         model.eval(),
-                         target_layer=target_layer if len(target_layer) > 0 else None
-                     )
-                print("out_int")
-                # st.write(cam_method)
-                st.balloons()
-                if uploaded_file is None:
-                    st.sidebar.error("Please upload an image first")
-                else:
-                    # st.balloons()
-                    with st.spinner('Analyzing...'):
-                        # Preprocess image
-                        img_tensor = normalize(to_tensor(resize(img, (28, 28))), [0.485],
-                                           [0.229])
-                        print("PIL")
-                        print(img_tensor.shape)
-                      # Forward the image to the model
-                        scores = model(img_tensor.unsqueeze(0))
-                        print(model)
-                        mu = scores[1]
-                        logvar = scores[2]
-                        print("mu,logvae", mu.shape, logvar.shape)
-                       # Select the target class
-                        # if class_selection == "Predicted class (argmax)":
-                #         #     class_idx = out.squeeze(0).argmax().item()
-                #         # else:
-                #         #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
-                #
-                       # Retrieve the CAM
-                       #  print(model)
-                        activation_map = cam_extractor(int(latent_pos), model.reparameterize(mu,logvar))
-                        # print("avtivation_map", type(activation_map))
-                        print(activation_map.size())
-                        x, y, z = cols[i].beta_columns(3)
-                        # Plot the raw heatmap
-                        fig, ax = plt.subplots()
-                        ax.imshow(activation_map.numpy())
-                        ax.axis('off')
-                        # cols_1,cols_2,cols_3 = cols[i].beta_columns(3)
-                        x.image(img, use_column_width=True)
-                        # y.image(img,use_column_width=True)
-                        # cols_1.write('1')
-                        # cols_2.write("1")
-                                #         # im > PIL.Image.Image
-                        im = Image.fromarray(activation_map.numpy()).convert('RGB')
-                        print(type(im))
-                        y.pyplot(fig)
-                        # Overlayed CAM
-                        fig, ax = plt.subplots()
-                #
-                #         # about mode https://blog.csdn.net/u013066730/article/details/102832597
-                #         # F represent that grey and pixel value-float 32
-                        result = overlay_mask(img, to_pil_image(activation_map, mode='F'), alpha=0.5)
-                        ax.imshow(result)
-                #         #                     im = Image.fromarray(result).convert('RGB')
-                        print("result", type(result))
-                        ax.axis('off')
-                #         # cols_3.write("1")
-                #         # cols_2.pyplot(fig)
-                #         z.image(img,use_column_width=True)
-                        z.pyplot(fig)
-
-
-
-
-        if all.form_submit_button("comupte_all"):
-            list1 = all.beta_columns(len(CAM_METHODS))
-            print("allll")
-            for i in range(len(CAM_METHODS)):
-                # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
-                # for i in range(1,4):
-                # if cols[i].form_submit_button("COMPUTE " + CAM_METHODS[i]):
-                #     st.balloons()
-                cam_method = CAM_METHODS[i]
-                # st.write(cam_method)
-                if cam_method is not None:
-                    cam_extractor = cams.__dict__[cam_method](
-                        model.eval(),
-                        target_layer=target_layer if len(target_layer) > 0 else None
-                    )
-                start = time.time()
-                list1[i].text("V"+CAM_METHODS[i][:14])
-                if uploaded_file is None:
-                    st.sidebar.error("Please upload an image first")
-                else:
-                    # st.balloons()
-                    with st.spinner('Analyzing...'):
-                        # Preprocess image
-                        img_tensor = normalize(to_tensor(resize(img, (28, 28))), [0.485],
-                                           [0.229])
-                        print("img_tensor", img_tensor.shape)
-                        scores = model(img_tensor.unsqueeze(0))
-
-                        mu = scores[1]
-                        logvar = scores[2]
-                        # Select the target class
-                        # if class_selection == "Predicted class (argmax)":
-                        #         #     class_idx = out.squeeze(0).argmax().item()
-                        #         # else:
-                        #         #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
-                        #
-                        print("mu,logvae",mu.shape,logvar.shape)
-                        print(model)
-                        # Retrieve the CAM
-                        latent_z = model.reparameterize(mu, logvar)
-                        print(latent_z.shape)
-                        activation_map = cam_extractor(int(latent_pos), latent_z)
-                        print("avtivation_map", type(activation_map), activation_map.shape)
-
-
-                        # Forward the image to the model
-                        # out = model(img_tensor.unsqueeze(0))
-                        # Select the target class
-                        # if class_selection == "Predicted class (argmax)":
-                        #     class_idx = out.squeeze(0).argmax().item()
-                        # else:
-                        #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
-                        # Retrieve the CAM
-                        # activation_map = cam_extractor(int(latent_pos), out)
-                        # print("avtivation_map", type(activation_map))
-                        # print(activation_map.size())
-                        # x, y, z = cols[i].beta_columns(3)
-                        # Plot the raw heatmap
-                        fig, ax = plt.subplots()
-                        ax.imshow(activation_map.numpy())
-                        ax.axis('off')
-                        # cols_1,cols_2,cols_3 = cols[i].beta_columns(3)
-                        # x.image(img, use_column_width=True)
-                        # y.image(img,use_column_width=True)
-                        # cols_1.write('1')
-                        # cols_2.write("1")
-                        list1[i].pyplot(fig)
-                        # im > PIL.Image.Image
-                        im = Image.fromarray(activation_map.numpy())
-                        print(type(im))
-                        # y.image(im, use_column_width=True)
-                        # Overlayed CAM
-                        fig, ax = plt.subplots()
-
-                        # about mode https://blog.csdn.net/u013066730/article/details/102832597
-                        # F represent that grey and pixel value-float 32
-                        result = overlay_mask(img, to_pil_image(activation_map, mode='F'), alpha=0.5)
-                        ax.imshow(result)
-                        # im = Image.fromarray(result).convert('RGB')
-                        print("result", type(result))
-                        ax.axis('off')
-                        # cols_3.write("1")
-                        # cols_2.pyplot(fig)
-                        list1[i].pyplot(fig)
-                        list1[i].text("time:"+str(round((time.time()-start)/1000,3))+'s')
-                        # z.image(img,use_column_width=True)
-                        # z.image(im, use_column_width=True)
-        st.write("delete_the_all_module______________________________________________")
-        # 删除所有的模型文件
-        for i in os.listdir("temp_models"):
-            os.remove(i)
-            # print(model(32))
+        #
+        # con_layer = get_encoder_con_layer(model)
+        # # Model selection
+        # st.sidebar.title("Setup")
+        # l_num = list(range(latent_size))
+        # latent_pos = st.sidebar.selectbox("latent_pos", l_num)
+        # print("load_state_dict___________________________________++++++++++++++++++++++++++++")
+        # model.load_state_dict(checkpoint['state_dict'])
+        #
+        # target_layer = con_layer[-1]
+        # print("con_layer",con_layer)
+        # target_layer = st.sidebar.selectbox("select_layer", con_layer)
+        # for i in range(len(CAM_METHODS)):
+        #     # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
+        #     # for i in range(1,4):
+        #     # st.write
+        #     # print("OUT________")
+        #     if cols[i].form_submit_button("解释图计算 V" + CAM_METHODS[i]):
+        #
+        #         print("co-------------------------------")
+        #         st.title("COOO"+CAM_METHODS[i])
+        #         cam_method = CAM_METHODS[i]
+        #         st.write(cam_method)
+        #         print("int")
+        #         if cam_method is not None:
+        #            cam_extractor = cams.__dict__[cam_method](
+        #                  model.eval(),
+        #                  target_layer=target_layer if len(target_layer) > 0 else None
+        #              )
+        #         print("out_int")
+        #         # st.write(cam_method)
+        #         st.balloons()
+        #         if uploaded_file is None:
+        #             st.sidebar.error("Please upload an image first")
+        #         else:
+        #             # st.balloons()
+        #             with st.spinner('Analyzing...'):
+        #                 # Preprocess image
+        #                 img_tensor = normalize(to_tensor(resize(img, (28, 28))), [0.485],
+        #                                    [0.229])
+        #                 print("PIL")
+        #                 print(img_tensor.shape)
+        #               # Forward the image to the model
+        #                 scores = model(img_tensor.unsqueeze(0))
+        #                 print(model)
+        #                 mu = scores[1]
+        #                 logvar = scores[2]
+        #                 print("mu,logvae", mu.shape, logvar.shape)
+        #                # Select the target class
+        #                 # if class_selection == "Predicted class (argmax)":
+        #         #         #     class_idx = out.squeeze(0).argmax().item()
+        #         #         # else:
+        #         #         #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
+        #         #
+        #                # Retrieve the CAM
+        #                #  print(model)
+        #                 activation_map = cam_extractor(int(latent_pos), model.reparameterize(mu,logvar))
+        #                 # print("avtivation_map", type(activation_map))
+        #                 print(activation_map.size())
+        #                 x, y, z = cols[i].beta_columns(3)
+        #                 # Plot the raw heatmap
+        #                 fig, ax = plt.subplots()
+        #                 ax.imshow(activation_map.numpy())
+        #                 ax.axis('off')
+        #                 # cols_1,cols_2,cols_3 = cols[i].beta_columns(3)
+        #                 x.image(img, use_column_width=True)
+        #                 # y.image(img,use_column_width=True)
+        #                 # cols_1.write('1')
+        #                 # cols_2.write("1")
+        #                         #         # im > PIL.Image.Image
+        #                 im = Image.fromarray(activation_map.numpy()).convert('RGB')
+        #                 print(type(im))
+        #                 y.pyplot(fig)
+        #                 # Overlayed CAM
+        #                 fig, ax = plt.subplots()
+        #         #
+        #         #         # about mode https://blog.csdn.net/u013066730/article/details/102832597
+        #         #         # F represent that grey and pixel value-float 32
+        #                 result = overlay_mask(img, to_pil_image(activation_map, mode='F'), alpha=0.5)
+        #                 ax.imshow(result)
+        #         #         #                     im = Image.fromarray(result).convert('RGB')
+        #                 print("result", type(result))
+        #                 ax.axis('off')
+        #         #         # cols_3.write("1")
+        #         #         # cols_2.pyplot(fig)
+        #         #         z.image(img,use_column_width=True)
+        #                 z.pyplot(fig)
+        #
+        #
+        #
+        #
+        # if all.form_submit_button("comupte_all"):
+        #     list1 = all.beta_columns(len(CAM_METHODS))
+        #     print("allll")
+        #     for i in range(len(CAM_METHODS)):
+        #         # cols[i + 1].form_submit_button("COMPUTE " + CAM_METHODS[i])
+        #         # for i in range(1,4):
+        #         # if cols[i].form_submit_button("COMPUTE " + CAM_METHODS[i]):
+        #         #     st.balloons()
+        #         cam_method = CAM_METHODS[i]
+        #         # st.write(cam_method)
+        #         if cam_method is not None:
+        #             cam_extractor = cams.__dict__[cam_method](
+        #                 model.eval(),
+        #                 target_layer=target_layer if len(target_layer) > 0 else None
+        #             )
+        #         start = time.time()
+        #         list1[i].text("V"+CAM_METHODS[i][:14])
+        #         if uploaded_file is None:
+        #             st.sidebar.error("Please upload an image first")
+        #         else:
+        #             # st.balloons()
+        #             with st.spinner('Analyzing...'):
+        #                 # Preprocess image
+        #                 img_tensor = normalize(to_tensor(resize(img, (28, 28))), [0.485],
+        #                                    [0.229])
+        #                 print("img_tensor", img_tensor.shape)
+        #                 scores = model(img_tensor.unsqueeze(0))
+        #
+        #                 mu = scores[1]
+        #                 logvar = scores[2]
+        #                 # Select the target class
+        #                 # if class_selection == "Predicted class (argmax)":
+        #                 #         #     class_idx = out.squeeze(0).argmax().item()
+        #                 #         # else:
+        #                 #         #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
+        #                 #
+        #                 print("mu,logvae",mu.shape,logvar.shape)
+        #                 print(model)
+        #                 # Retrieve the CAM
+        #                 latent_z = model.reparameterize(mu, logvar)
+        #                 print(latent_z.shape)
+        #                 activation_map = cam_extractor(int(latent_pos), latent_z)
+        #                 print("avtivation_map", type(activation_map), activation_map.shape)
+        #
+        #
+        #                 # Forward the image to the model
+        #                 # out = model(img_tensor.unsqueeze(0))
+        #                 # Select the target class
+        #                 # if class_selection == "Predicted class (argmax)":
+        #                 #     class_idx = out.squeeze(0).argmax().item()
+        #                 # else:
+        #                 #     class_idx = LABEL_MAP.index(class_selection.rpartition(" - ")[-1])
+        #                 # Retrieve the CAM
+        #                 # activation_map = cam_extractor(int(latent_pos), out)
+        #                 # print("avtivation_map", type(activation_map))
+        #                 # print(activation_map.size())
+        #                 # x, y, z = cols[i].beta_columns(3)
+        #                 # Plot the raw heatmap
+        #                 fig, ax = plt.subplots()
+        #                 ax.imshow(activation_map.numpy())
+        #                 ax.axis('off')
+        #                 # cols_1,cols_2,cols_3 = cols[i].beta_columns(3)
+        #                 # x.image(img, use_column_width=True)
+        #                 # y.image(img,use_column_width=True)
+        #                 # cols_1.write('1')
+        #                 # cols_2.write("1")
+        #                 list1[i].pyplot(fig)
+        #                 # im > PIL.Image.Image
+        #                 im = Image.fromarray(activation_map.numpy())
+        #                 print(type(im))
+        #                 # y.image(im, use_column_width=True)
+        #                 # Overlayed CAM
+        #                 fig, ax = plt.subplots()
+        #
+        #                 # about mode https://blog.csdn.net/u013066730/article/details/102832597
+        #                 # F represent that grey and pixel value-float 32
+        #                 result = overlay_mask(img, to_pil_image(activation_map, mode='F'), alpha=0.5)
+        #                 ax.imshow(result)
+        #                 # im = Image.fromarray(result).convert('RGB')
+        #                 print("result", type(result))
+        #                 ax.axis('off')
+        #                 # cols_3.write("1")
+        #                 # cols_2.pyplot(fig)
+        #                 list1[i].pyplot(fig)
+        #                 list1[i].text("time:"+str(round((time.time()-start)/1000,3))+'s')
+        #                 # z.image(img,use_column_width=True)
+        #                 # z.image(im, use_column_width=True)
+        # st.write("delete_the_all_module______________________________________________")
+        # # 删除所有的模型文件
+        # for i in os.listdir("temp_models"):
+        #     os.remove(i)
+        #     # print(model(32))
 if __name__ == '__main__':
     main()
 
