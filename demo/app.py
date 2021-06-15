@@ -40,6 +40,7 @@ def get_encoder_con_layer(x):
         if 'encoder' in i:
             conv.append(i)
     return conv
+
 # @st.cache
 def main():
         print(sys.path)
@@ -91,7 +92,6 @@ def main():
             latent_size = len(checkpoint['state_dict']['fc1.bias'])
             print("latent_size______________________________________________________________",latent_size)
             print("CHECKCHECKCHECKCHECK___________________CHECK________CHECK___________________")
-
         uploaded_file_py = st.sidebar.file_uploader("Upload model.py", type=['py'])
         if uploaded_file_py is not None:
             #上传模型文件，
@@ -101,24 +101,29 @@ def main():
             model_str = model_stringio.read()
             st.write(model_str)
             #将模型写入指定文件夹
-            write_model = open("temp_models\\"+uploaded_file_py.name,'w')
+            write_model = open("temp_models//"+uploaded_file_py.name,'w')
             #加载初始化文件
-            init_model = open("temp_models\\__init__.py",'a')
+            init_model = open("temp_models//__init__.py",'a')
             write_model.write(model_str)
-
             init_model.write("\nfrom ."+uploaded_file_py.name[:-3]+" import *")
             #关闭文件
             write_model.close()
             init_model.close()
+            # sys.path.append('//app//torch-cam//'+'temp_models//''+uploaded_file_py.name)
 
         print("______________________________aaaaaa")
+        print("BEGIN_______")
+        print(sys.path)
         import temp_models
-        print(os.listdir('temp_models'))
-        print(temp_models.__dict__.keys())
-        st.write(temp_models.__dict__)
-        for i in temp_models.__dict__:
-            print(i)
-
+        print("ENDING_________")
+        print(sys.path)
+        print(temp_models)
+        print("GET___________")
+        # print(os.listdir('temp_models'))
+        # print(temp_models.__dict__.keys())
+        # st.write(temp_models.__dict__)
+        # for i in temp_models.__dict__:
+        #     print(i)
         print("+++++++++++++++++++++")
         #获取文件对象
         model = temp_models.__dict__[uploaded_file_py.name[:-3]]
