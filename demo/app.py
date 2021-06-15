@@ -122,11 +122,11 @@ def main():
         print(sys.path)
         print(temp_models)
         print("GET___________")
-        # print(os.listdir('temp_models'))
+        print(os.listdir('temp_models'))
         # print(temp_models.__dict__.keys())
         # st.write(temp_models.__dict__)
-        # for i in temp_models.__dict__:
-        #     print(i)
+        for i in temp_models.__dict__:
+            print(i)
         print("+++++++++++++++++++++")
         #获取文件对象
         model = temp_models.__dict__[uploaded_file_py.name[:-3]]
