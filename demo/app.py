@@ -100,6 +100,8 @@ def main():
             st.write(uploaded_file_py.name)
             model_str = model_stringio.read()
             st.write(model_str)
+            #创建临时目录存放model
+            os.mkdir("temp_models")
             #将模型写入指定文件夹
             write_model = open("temp_models//"+uploaded_file_py.name,'w')
             #加载初始化文件
