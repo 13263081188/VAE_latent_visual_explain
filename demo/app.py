@@ -111,12 +111,13 @@ def main():
             #关闭文件
             write_model.close()
             init_model.close()
+            import temp_models
             # sys.path.append('//app//torch-cam//'+'temp_models//''+uploaded_file_py.name)
 
         print("______________________________aaaaaa")
         print("BEGIN_______")
         print(sys.path)
-        import temp_models
+
         print("ENDING_________")
         print(sys.path)
         print(temp_models)
