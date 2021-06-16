@@ -313,11 +313,11 @@ def main():
         #                 list1[i].text("time:"+str(round((time.time()-start)/1000,3))+'s')
         #                 # z.image(img,use_column_width=True)
         #                 # z.image(im, use_column_width=True)
-        # st.write("delete_the_all_module______________________________________________")
-        # # 删除所有的模型文件
-        # for i in os.listdir("temp_models"):
-        #     os.remove(i)
-        #     # print(model(32))
+        st.write("delete_the_all_module______________________________________________")
+        # 删除所有的模型文件
+        for i in os.listdir("temp_models"):
+            os.remove(i)
+            # print(model(32))
 if __name__ == '__main__':
     main()
 
