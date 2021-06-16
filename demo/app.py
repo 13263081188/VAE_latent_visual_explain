@@ -113,6 +113,9 @@ def main():
             write_model.close()
             init_model.close()
             import temp_models
+            for i in temp_models.__dict__:
+                print(i)
+            print("up_ending______")
             # sys.path.append('//app//torch-cam//'+'temp_models//''+uploaded_file_py.name)
         if "temp_models" not in os.listdir():
             os.mkdir("temp_models")
