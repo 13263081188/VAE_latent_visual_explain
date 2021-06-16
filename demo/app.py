@@ -119,6 +119,7 @@ def main():
             # sys.path.append('//app//torch-cam//'+'temp_models//''+uploaded_file_py.name)
         if "temp_models" not in os.listdir():
             os.mkdir("temp_models")
+            import temp_models
         print("______________________________aaaaaa")
         print("BEGIN_______")
 
