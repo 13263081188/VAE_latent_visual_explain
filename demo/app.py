@@ -114,7 +114,7 @@ def main():
             init_model.close()
             import temp_models
             init_model = open("temp_models//__init__.py", 'r')
-            st.write(init_model)
+            st.write(init_model.read())
             st.write("COLLLLLLLLLLLLLLLLLLLLLL")
             for i in temp_models.__dict__:
                 print(i)
