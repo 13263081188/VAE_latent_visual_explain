@@ -113,6 +113,9 @@ def main():
             write_model.close()
             init_model.close()
             import temp_models
+            init_model = open("temp_models//__init__.py", 'r')
+            st.write(init_model)
+            st.write("COLLLLLLLLLLLLLLLLLLLLLL")
             for i in temp_models.__dict__:
                 print(i)
             print("up_ending______")
