@@ -78,11 +78,11 @@ def main():
                 os.mkdir("temp_models")
 
             #将模型写入指定文件夹
-            write_model = open("temp_models//"+uploaded_file_py.name,'w')
+            write_model = open("//app//vae_latent_visual_explain//temp_models//"+uploaded_file_py.name,'w')
             write_model.write(model_str)
 
             #加载初始化文件
-            init_model = open("temp_models//__init__.py",'w')
+            init_model = open("//app//vae_latent_visual_explain//temp_models//__init__.py",'w')
             init_model.write("from ."+uploaded_file_py.name[:-3]+" import *")
 
             #关闭文件
