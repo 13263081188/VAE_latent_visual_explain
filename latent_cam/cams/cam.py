@@ -1,0 +1,367 @@
+import math
+import logging
+import torch
+from torch import Tensor
+from torch import nn
+import torch.nn.functional as F
+from typing import Optional, Tuple
+
+from .core import _CAM
+from .utils import locate_linear_layer
+# import model
+
+__all__ = ['CAM', 'ScoreCAM', 'SSCAM', 'ISCAM']
+
+
+class CAM(_CAM):
+    """解释图提取" <https://arxiv.org/pdf/1512.04150.pdf>`_.
+    要求VAE的编码器具有全局平均层
+    Example::
+        >>> from torchvision.vae_models import resnet18
+        >>> from latent_cam.cams import CAM
+        >>> model = resnet18(pretrained=True).eval()
+        >>> cam = CAM(model, 'layer4', 'fc')
+        >>> with torch.no_grad(): out = model(input_tensor)
+        >>> cam(latent_pos=100)
+    Args:
+        model: 输入模型
+        target_layer: 目标层
+        fc_layer: 全连接层
+        input_shape: 输入的形状
+    """
+
+    def __init__(
+            self,
+            model: nn.Module,
+            target_layer: Optional[str] = None,
+            fc_layer: Optional[str] = None,
+            input_shape: Tuple[int, ...] = (3, 224, 224),
+    ) -> None:
+
+        super().__init__(model, target_layer, input_shape)
+
+        # If the layer is not specified, try automatic resolution
+        if fc_layer is None:
+            print("not_linear")
+            fc_layer = locate_linear_layer(model)
+            # Warn the user of the choice
+            if isinstance(fc_layer, str):
+                logging.warning(f"no value was provided for `fc_layer`, thus set to '{fc_layer}'.")
+            else:
+                raise ValueError("unable to resolve `fc_layer` automatically, please specify its value.")
+        # Softmax weight
+        self._fc_weights = self.submodule_dict[fc_layer].weight.data
+
+    def _get_weights(self, latent_pos: int, scores: Optional[Tensor] = None) -> Tensor:
+        """对于给定隐变量，计算权重因子"""
+        #计算给定隐变量的权重因子
+        return self._fc_weights[latent_pos, :]
+
+
+class ScoreCAM(_CAM):
+    """使用分函数来计算权重因子" <https://arxiv.org/pdf/1910.01279.pdf>`_.
+    Example::
+        >>> from torchvision.vae_models import resnet18
+        >>> from latent_cam.cams import ScoreCAM
+        >>> model = resnet18(pretrained=True).eval()
+        >>> cam = ScoreCAM(model, 'layer4')
+        >>> with torch.no_grad(): out = model(input_tensor)
+        >>> cam(latent_pos=100)
+    Args:
+        model: 输入模型
+        target_layer: 目标层
+        batch_size: batch size used to forward masked inputs
+        input_shape: shape of the expected input tensor excluding the batch dimension
+    """
+
+    def __init__(
+            self,
+            model: nn.Module,
+            target_layer: Optional[str] = None,
+            batch_size: int = 128,
+            input_shape: Tuple[int, ...] = (3, 224, 224),
+    ) -> None:
+
+        super().__init__(model, target_layer, input_shape)
+
+        # 保存特征层
+        self.hook_handles.append(model.register_forward_pre_hook(self._store_input))
+        self.bs = batch_size
+        # Ensure ReLU is applied to CAM before normalization
+        self._relu = True
+
+    def _store_input(self, module: nn.Module, input: Tensor) -> None:
+        """Store model input tensor"""
+        if self._hooks_enabled:
+            self._input = input[0].data.clone()
+
+    def _get_weights(self, latent_pos: int, scores: Optional[Tensor] = None) -> Tensor:
+        """计算权重因子"""
+        print(type(scores), "----", scores.shape)
+        #标准归一化解释图
+        self.hook_a: Tensor
+        upsampled_a = self._normalize(self.hook_a, self.hook_a.ndim - 2)
+
+
+        #将解释图上采样为输入的大小
+        # 1 * O * M * N
+        spatial_dims = self._input.ndim - 2
+        interpolation_mode = 'bilinear' if spatial_dims == 2 else 'trilinear' if spatial_dims == 3 else 'nearest'
+        upsampled_a = F.interpolate(upsampled_a, self._input.shape[2:], mode=interpolation_mode, align_corners=False)
+        print(upsampled_a.shape,"upsampled_a.shape_______________________+++++++++++_____________")
+        # Use it as a mask
+        # O * I * H * W
+        masked_input = upsampled_a.squeeze(0).unsqueeze(1) * self._input
+        print(self._input.shape,"self._input_SHAPE_______________________________________________")
+        print(masked_input.shape,"masked_input.shape,__________++++++++++++++++++++++++++++++++++")
+        # Initialize weights
+        weights = torch.zeros(masked_input.shape[0], dtype=masked_input.dtype).to(device=masked_input.device)
+        # Disable hook updates
+        self._hooks_enabled = False
+        # Switch to eval
+        origin_mode = self.model.training
+        self.model.eval()
+        print(self.bs,"____________self.bs")
+        #Process by chunk (GPU RAM limitation)
+        for idx in range(math.ceil(weights.shape[0] / self.bs)):
+            selection_slice = slice(idx * self.bs, min((idx + 1) * self.bs, weights.shape[0]))
+            with torch.no_grad():
+                #Get the softmax probabilities of the latent_pos
+                out = self.model(masked_input[selection_slice])
+                out_origin = self.model(self._input[selection_slice])
+                mu = out[1]
+                logvar = out[2]
+                mu_origin = out_origin[1]
+                logvar_origin = out_origin[2]
+                print("Mu,logvae",mu,logvar,2*(logvar.exp()))
+                latent_score = logvar_origin-logvar -0.5+(logvar.exp()+(mu_origin-mu).pow(2))//(2*logvar_origin.exp())
+                print(latent_score.shape,"SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+                print("latent_score___________________________________________________")
+                weights[selection_slice] = F.softmax(latent_score, dim=0)[:, latent_pos]
+                for i in weights:
+                    print(i)
+
+        # Reenable hook updates
+        self._hooks_enabled = True
+        # Put back the model in the correct mode
+        self.model.training = origin_mode
+        print("weights_shape____+++++++++++++++++++++___________",weights)
+        return weights
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(batch_size={self.bs})"
+
+
+class SSCAM(ScoreCAM):
+    """Implements a class activation map extractor as described in `"SS-CAM: Smoothed Score-CAM for
+    Sharper Visual Feature Localization" <https://arxiv.org/pdf/2006.14255.pdf>`_.
+
+    The localization map is computed as follows:
+
+    .. math::
+        L^{(c)}_{SS-CAM}(x, y) = ReLU\\Big(\\sum\\limits_k w_k^{(c)} A_k(x, y)\\Big)
+
+    with the coefficient :math:`w_k^{(c)}` being defined as:
+
+    .. math::
+        w_k^{(c)} = \\frac{1}{N} \\sum\\limits_1^N softmax(Y^{(c)}(M_k) - Y^{(c)}(X_b))
+
+    where :math:`N` is the number of samples used to smooth the weights,
+    :math:`A_k(x, y)` is the activation of node :math:`k` in the target layer of the model at
+    position :math:`(x, y)`, :math:`Y^{(c)}(X)` is the model output score for class :math:`c` before softmax
+    for input :math:`X`, :math:`X_b` is a baseline image,
+    and :math:`M_k` is defined as follows:
+
+    .. math::
+        M_k = \\Bigg(\\frac{U(A_k) - \\min\\limits_m U(A_m)}{\\max\\limits_m  U(A_m) - \\min\\limits_m  U(A_m)} +
+        \\delta\\Bigg) \\odot X
+
+    where :math:`\\odot` refers to the element-wise multiplication, :math:`U` is the upsampling operation,
+    :math:`\\delta \\sim \\mathcal{N}(0, \\sigma^2)` is the random noise that follows a 0-mean gaussian distribution
+    with a standard deviation of :math:`\\sigma`.
+
+    Example::
+        >>> from torchvision.vae_models import resnet18
+        >>> from latent_cam.cams import SSCAM
+        >>> model = resnet18(pretrained=True).eval()
+        >>> cam = SSCAM(model, 'layer4')
+        >>> with torch.no_grad(): out = model(input_tensor)
+        >>> cam(latent_pos=100)
+
+    Args:
+        model: input model
+        target_layer: name of the target layer
+        batch_size: batch size used to forward masked inputs
+        num_samples: number of noisy samples used for weight computation
+        std: standard deviation of the noise added to the normalized activation
+        input_shape: shape of the expected input tensor excluding the batch dimension
+    """
+
+    def __init__(
+            self,
+            model: nn.Module,
+            target_layer: Optional[str] = None,
+            batch_size: int = 32,
+            num_samples: int = 35,
+            std: float = 2.0,
+            input_shape: Tuple[int, ...] = (3, 224, 224),
+    ) -> None:
+
+        super().__init__(model, target_layer, batch_size, input_shape)
+
+        self.num_samples = num_samples
+        self.std = std
+        self._distrib = torch.distributions.normal.Normal(0, self.std)
+
+    def _get_weights(self, latent_pos: int, scores: Optional[Tensor] = None) -> Tensor:
+        """Computes the weight coefficients of the hooked activation maps"""
+
+        # Normalize the activation
+        self.hook_a: Tensor
+        upsampled_a = self._normalize(self.hook_a, self.hook_a.ndim - 2)
+
+        #  Upsample it to input_size
+        # 1 * O * M * N
+        spatial_dims = self._input.ndim - 2
+        interpolation_mode = 'bilinear' if spatial_dims == 2 else 'trilinear' if spatial_dims == 3 else 'nearest'
+        upsampled_a = F.interpolate(upsampled_a, self._input.shape[2:], mode=interpolation_mode, align_corners=False)
+
+        # Use it as a mask
+        # O * I * H * W
+        upsampled_a = upsampled_a.squeeze(0).unsqueeze(1)
+
+        # Initialize weights
+        weights = torch.zeros(upsampled_a.shape[0], dtype=upsampled_a.dtype).to(device=upsampled_a.device)
+
+        # Disable hook updates
+        self._hooks_enabled = False
+        # Switch to eval
+        origin_mode = self.model.training
+        self.model.eval()
+
+        for _idx in range(self.num_samples):
+            noisy_m = self._input * (upsampled_a +
+                                     self._distrib.sample(self._input.size()).to(device=self._input.device))
+
+            #  Process by chunk (GPU RAM limitation)
+            for idx in range(math.ceil(weights.shape[0] / self.bs)):
+                selection_slice = slice(idx * self.bs, min((idx + 1) * self.bs, weights.shape[0]))
+                with torch.no_grad():
+                    #  Get the softmax probabilities of the latent_Pos
+                    temp_out = self.model(noisy_m[selection_slice])
+                    weights[selection_slice] += F.softmax(self.model.reparameterize(temp_out[1], temp_out[2]), dim=1)[:,
+                                                latent_pos]
+        weights.div_(self.num_samples)
+        # Reenable hook updates
+        self._hooks_enabled = True
+        # Put back the model in the correct mode
+        self.model.training = origin_mode
+        return weights
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(batch_size={self.bs}, num_samples={self.num_samples}, std={self.std})"
+
+
+class ISCAM(ScoreCAM):
+    """Implements a class activation map extractor as described in `"IS-CAM: Integrated Score-CAM for axiomatic-based
+    explanations" <https://arxiv.org/pdf/2010.03023.pdf>`_.
+
+    The localization map is computed as follows:
+
+    .. math::
+        L^{(c)}_{ISS-CAM}(x, y) = ReLU\\Big(\\sum\\limits_k w_k^{(c)} A_k(x, y)\\Big)
+
+    with the coefficient :math:`w_k^{(c)}` being defined as:
+
+    .. math::
+        w_k^{(c)} = \\sum\\limits_{i=1}^N \\frac{i}{N} softmax(Y^{(c)}(M_k) - Y^{(c)}(X_b))
+
+    where :math:`N` is the number of samples used to smooth the weights,
+    :math:`A_k(x, y)` is the activation of node :math:`k` in the target layer of the model at
+    position :math:`(x, y)`, :math:`Y^{(c)}(X)` is the model output score for class :math:`c` before softmax
+    for input :math:`X`, :math:`X_b` is a baseline image,
+    and :math:`M_k` is defined as follows:
+
+    .. math::
+        M_k = \\Bigg(\\frac{U(A_k) - \\min\\limits_m U(A_m)}{\\max\\limits_m  U(A_m) - \\min\\limits_m  U(A_m)} +
+        \\delta\\Bigg) \\odot X
+
+    where :math:`\\odot` refers to the element-wise multiplication, :math:`U` is the upsampling operation,
+    :math:`\\delta \\sim \\mathcal{N}(0, \\sigma^2)` is the random noise that follows a 0-mean gaussian distribution
+    with a standard deviation of :math:`\\sigma`.
+
+    Example::
+        >>> from torchvision.vae_models import resnet18
+        >>> from latent_cam.cams import ISSCAM
+        >>> model = resnet18(pretrained=True).eval()
+        >>> cam = ISCAM(model, 'layer4')
+        >>> with torch.no_grad(): out = model(input_tensor)
+        >>> cam(latent_pos=100)
+
+    Args:
+        model: input model
+        target_layer: name of the target layer
+        batch_size: batch size used to forward masked inputs
+        num_samples: number of noisy samples used for weight computation
+        input_shape: shape of the expected input tensor excluding the batch dimension
+    """
+
+    def __init__(
+            self,
+            model: nn.Module,
+            target_layer: Optional[str] = None,
+            batch_size: int = 32,
+            num_samples: int = 10,
+            input_shape: Tuple[int, ...] = (3, 224, 224),
+    ) -> None:
+
+        super().__init__(model, target_layer, batch_size, input_shape)
+
+        self.num_samples = num_samples
+
+    def _get_weights(self, latent_pos: int, scores: Optional[Tensor] = None) -> Tensor:
+        """Computes the weight coefficients of the hooked activation maps"""
+
+        # Normalize the activation
+        self.hook_a: Tensor
+        upsampled_a = self._normalize(self.hook_a, self.hook_a.ndim - 2)
+
+        #  Upsample it to input_size
+        # 1 * O * M * N
+        spatial_dims = self._input.ndim - 2
+        interpolation_mode = 'bilinear' if spatial_dims == 2 else 'trilinear' if spatial_dims == 3 else 'nearest'
+        upsampled_a = F.interpolate(upsampled_a, self._input.shape[2:], mode=interpolation_mode, align_corners=False)
+
+        # Use it as a mask
+        # O * I * H * W
+        upsampled_a = upsampled_a.squeeze(0).unsqueeze(1)
+
+        # Initialize weights
+        weights = torch.zeros(upsampled_a.shape[0], dtype=upsampled_a.dtype).to(device=upsampled_a.device)
+
+        # Disable hook updates
+        self._hooks_enabled = False
+        fmap = torch.zeros((upsampled_a.shape[0], *self._input.shape[1:]),
+                           dtype=upsampled_a.dtype, device=upsampled_a.device)
+        # Switch to eval
+        origin_mode = self.model.training
+        self.model.eval()
+
+        for _idx in range(self.num_samples):
+            fmap += (_idx + 1) / self.num_samples * self._input * upsampled_a
+
+            #  Process by chunk (GPU RAM limitation)
+            for idx in range(math.ceil(weights.shape[0] / self.bs)):
+                selection_slice = slice(idx * self.bs, min((idx + 1) * self.bs, weights.shape[0]))
+                with torch.no_grad():
+                    #  Get the softmax probabilities of the target latent_pos
+                    temp_out = self.model(fmap[selection_slice])
+                    weights[selection_slice] += F.softmax(self.model.reparameterize(temp_out[1], temp_out[2]), dim=1)[:,
+                                                latent_pos]
+
+        # Reenable hook updates
+        self._hooks_enabled = True
+        # Put back the model in the correct mode
+        self.model.training = origin_mode
+
+        return weights
