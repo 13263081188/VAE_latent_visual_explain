@@ -70,9 +70,9 @@ def main():
             #上传模型文件，
             model_stringio = StringIO(uploaded_file_py.getvalue().decode("utf-8"))
             #以string流读入文件内容
-            st.write(uploaded_file_py.name)
+            # st.write(uploaded_file_py.name)
             model_str = model_stringio.read()
-            st.write(model_str)
+            # st.write(model_str)
             #创建临时目录存放model
             if "temp_models" not in os.listdir():
                 os.mkdir("temp_models")
